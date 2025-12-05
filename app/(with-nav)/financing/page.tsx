@@ -7,8 +7,8 @@ import { Input } from '@heroui/input';
 import { Select, SelectItem } from '@heroui/select';
 
 export default function FinancingPage() {
-  const [selectedProduct, setSelectedProduct] = useState('');
-  const [selectedPool, setSelectedPool] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<Set<string>>(new Set([]));
+  const [selectedPool, setSelectedPool] = useState<Set<string>>(new Set([]));
   const [amount, setAmount] = useState('');
 
   const products = [
@@ -21,8 +21,17 @@ export default function FinancingPage() {
     { id: 'POOL002', name: '仓单融资池', rate: '6%', available: 3000000 },
   ];
 
+  const selectedProductId = Array.from(selectedProduct)[0];
+  const selectedPoolId = Array.from(selectedPool)[0];
+  const selectedProductData = products.find((p) => p.id === selectedProductId);
+  const selectedPoolData = pools.find((p) => p.id === selectedPoolId);
+
   const handleSubmit = () => {
-    alert('融资申请已提交！');
+    if (!selectedProductId || !selectedPoolId || !amount) {
+      alert('请填写完整信息！');
+      return;
+    }
+    alert(`融资申请已提交！\n商品: ${selectedProductData?.name}\n融资池: ${selectedPoolData?.name}\n金额: ${amount} USDT`);
   };
 
   return (
@@ -38,26 +47,43 @@ export default function FinancingPage() {
             <Select
               label="选择商品"
               placeholder="选择要融资的商品"
-              onChange={(e) => setSelectedProduct(e.target.value)}
+              selectedKeys={selectedProduct}
+              onSelectionChange={(keys) => setSelectedProduct(keys as Set<string>)}
             >
               {products.map((product) => (
-                <SelectItem key={product.id} value={product.id}>
+                <SelectItem key={product.id}>
                   {product.name} - ${product.value.toLocaleString()}
                 </SelectItem>
               ))}
             </Select>
 
+            {selectedProductData && (
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm font-semibold">已选商品: {selectedProductData.name}</p>
+                <p className="text-sm text-gray-600">价值: ${selectedProductData.value.toLocaleString()}</p>
+              </div>
+            )}
+
             <Select
               label="选择融资池"
               placeholder="选择融资池类型"
-              onChange={(e) => setSelectedPool(e.target.value)}
+              selectedKeys={selectedPool}
+              onSelectionChange={(keys) => setSelectedPool(keys as Set<string>)}
             >
               {pools.map((pool) => (
-                <SelectItem key={pool.id} value={pool.id}>
+                <SelectItem key={pool.id}>
                   {pool.name} - 利率: {pool.rate}
                 </SelectItem>
               ))}
             </Select>
+
+            {selectedPoolData && (
+              <div className="p-3 bg-green-50 rounded-lg">
+                <p className="text-sm font-semibold">已选融资池: {selectedPoolData.name}</p>
+                <p className="text-sm text-gray-600">年化利率: {selectedPoolData.rate}</p>
+                <p className="text-sm text-gray-600">可用额度: ${selectedPoolData.available.toLocaleString()}</p>
+              </div>
+            )}
 
             <Input
               label="融资金额 (USDT)"
