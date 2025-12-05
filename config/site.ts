@@ -1,28 +1,32 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Next.js + HeroUI",
-  description: "Make beautiful websites regardless of your design experience.",
+  name: "PicWe CCN",
+  description: "商品信用网络 - 全球大宗商品链上融资与结算平台",
   navItems: [
     {
-      label: "Home",
-      href: "/",
+      label: "首页",
+      href: "/home",
     },
     {
-      label: "Docs",
-      href: "/docs",
+      label: "商品管理",
+      href: "/products",
     },
     {
-      label: "Pricing",
-      href: "/pricing",
+      label: "融资申请",
+      href: "/financing",
     },
     {
-      label: "Blog",
-      href: "/blog",
+      label: "融资池",
+      href: "/pools",
     },
     {
-      label: "About",
-      href: "/about",
+      label: "结算中心",
+      href: "/settlement",
+    },
+    {
+      label: "数据分析",
+      href: "/analytics",
     },
   ],
   navMenuItems: [
