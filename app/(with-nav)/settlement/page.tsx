@@ -6,20 +6,28 @@ import { Button } from '@heroui/button';
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
 import { Chip } from '@heroui/chip';
 
+/**
+ * 支付记录数据接口
+ */
 interface Payment {
-  id: string;
-  productName: string;
-  amount: number;
-  status: 'pending' | 'processing' | 'completed';
-  buyer: string;
-  date: string;
+  id: string;                                    // 支付ID
+  productName: string;                           // 商品名称
+  amount: number;                                // 金额
+  status: 'pending' | 'processing' | 'completed'; // 状态
+  buyer: string;                                 // 买家地址
+  date: string;                                  // 日期
 }
 
+/**
+ * 支付清算与结算页面
+ * 功能：查看支付状态，触发清算操作
+ */
 export default function SettlementPage() {
+  // 支付记录列表状态
   const [payments, setPayments] = useState<Payment[]>([
     {
       id: 'PAY001',
-      productName: '铜矿石',
+      productName: 'Copper Ore',
       amount: 500000,
       status: 'pending',
       buyer: '0x1234...5678',
@@ -27,7 +35,7 @@ export default function SettlementPage() {
     },
     {
       id: 'PAY002',
-      productName: '原油',
+      productName: 'Crude Oil',
       amount: 2000000,
       status: 'processing',
       buyer: '0xabcd...efgh',
@@ -35,7 +43,7 @@ export default function SettlementPage() {
     },
     {
       id: 'PAY003',
-      productName: '铁矿石',
+      productName: 'Iron Ore',
       amount: 800000,
       status: 'completed',
       buyer: '0x9876...5432',
@@ -43,15 +51,21 @@ export default function SettlementPage() {
     },
   ]);
 
+  /**
+   * 触发清算操作
+   */
   const handleSettle = (paymentId: string) => {
     setPayments(
       payments.map((p) =>
         p.id === paymentId ? { ...p, status: 'completed' as const } : p
       )
     );
-    alert(`支付 ${paymentId} 已完成清算`);
+    alert(`Payment ${paymentId} settlement completed`);
   };
 
+  /**
+   * 根据状态返回对应的颜色
+   */
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
@@ -65,14 +79,17 @@ export default function SettlementPage() {
     }
   };
 
+  /**
+   * 根据状态返回对应的文本
+   */
   const getStatusText = (status: string) => {
     switch (status) {
       case 'pending':
-        return '待支付';
+        return 'Pending';
       case 'processing':
-        return '处理中';
+        return 'Processing';
       case 'completed':
-        return '已完成';
+        return 'Completed';
       default:
         return status;
     }
@@ -80,22 +97,23 @@ export default function SettlementPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">支付清算与结算</h1>
+      <h1 className="text-3xl font-bold mb-6">Payment Settlement</h1>
 
+      {/* 支付记录表格卡片 */}
       <Card>
         <CardHeader>
-          <h2 className="text-xl font-semibold">支付记录</h2>
+          <h2 className="text-xl font-semibold">Payment Records</h2>
         </CardHeader>
         <CardBody>
-          <Table aria-label="支付清算列表">
+          <Table aria-label="Payment settlement list">
             <TableHeader>
-              <TableColumn>支付ID</TableColumn>
-              <TableColumn>商品名称</TableColumn>
-              <TableColumn>金额 (USDT)</TableColumn>
-              <TableColumn>买家地址</TableColumn>
-              <TableColumn>状态</TableColumn>
-              <TableColumn>日期</TableColumn>
-              <TableColumn>操作</TableColumn>
+              <TableColumn>Payment ID</TableColumn>
+              <TableColumn>Product Name</TableColumn>
+              <TableColumn>Amount (USDT)</TableColumn>
+              <TableColumn>Buyer Address</TableColumn>
+              <TableColumn>Status</TableColumn>
+              <TableColumn>Date</TableColumn>
+              <TableColumn>Action</TableColumn>
             </TableHeader>
             <TableBody>
               {payments.map((payment) => (
@@ -111,13 +129,14 @@ export default function SettlementPage() {
                   </TableCell>
                   <TableCell>{payment.date}</TableCell>
                   <TableCell>
+                    {/* 只有待支付状态才显示清算按钮 */}
                     {payment.status === 'pending' && (
                       <Button
                         size="sm"
                         color="primary"
                         onPress={() => handleSettle(payment.id)}
                       >
-                        触发清算
+                        Settle
                       </Button>
                     )}
                   </TableCell>

@@ -2,30 +2,30 @@ export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
   name: "PicWe CCN",
-  description: "商品信用网络 - 全球大宗商品链上融资与结算平台",
+  description: "Commodity Credit Network - Global Commodity Financing & Settlement Platform",
   navItems: [
     {
-      label: "首页",
+      label: "Home", // 首页
       href: "/home",
     },
     {
-      label: "商品管理",
+      label: "Products", // 商品管理
       href: "/products",
     },
     {
-      label: "融资申请",
+      label: "Financing", // 融资申请
       href: "/financing",
     },
     {
-      label: "融资池",
+      label: "Pools", // 融资池
       href: "/pools",
     },
     {
-      label: "结算中心",
+      label: "Settlement", // 结算中心
       href: "/settlement",
     },
     {
-      label: "数据分析",
+      label: "Analytics", // 数据分析
       href: "/analytics",
     },
   ],
