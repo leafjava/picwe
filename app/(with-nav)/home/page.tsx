@@ -26,7 +26,7 @@ export default function HomePage() {
       {/* 主要功能卡片 - 第一行 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
         {/* 商品管理卡片 */}
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-md">
           <CardBody className="text-center p-6">
             <div className="text-4xl mb-4">📦</div>
             <h3 className="text-xl font-semibold mb-2">Product Management</h3>
@@ -40,7 +40,7 @@ export default function HomePage() {
         </Card>
 
         {/* 融资申请卡片 */}
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-md">
           <CardBody className="text-center p-6">
             <div className="text-4xl mb-4">💰</div>
             <h3 className="text-xl font-semibold mb-2">Financing Application</h3>
@@ -54,7 +54,7 @@ export default function HomePage() {
         </Card>
 
         {/* 融资池卡片 */}
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-md">
           <CardBody className="text-center p-6">
             <div className="text-4xl mb-4">🏊</div>
             <h3 className="text-xl font-semibold mb-2">Financing Pools</h3>
@@ -71,7 +71,7 @@ export default function HomePage() {
       {/* 主要功能卡片 - 第二行 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl">
         {/* 结算中心卡片 */}
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-md">
           <CardBody className="text-center p-6">
             <div className="text-4xl mb-4">💳</div>
             <h3 className="text-xl font-semibold mb-2">Settlement Center</h3>
@@ -85,7 +85,7 @@ export default function HomePage() {
         </Card>
 
         {/* 数据分析卡片 */}
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-md">
           <CardBody className="text-center p-6">
             <div className="text-4xl mb-4">📊</div>
             <h3 className="text-xl font-semibold mb-2">Data Analytics</h3>
@@ -100,7 +100,7 @@ export default function HomePage() {
       </div>
 
       {/* 核心优势展示区域 */}
-      <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg max-w-5xl">
+      <div className="mt-8 p-6 bg-gradient-to-r from-blue-50/80 to-purple-50/80 backdrop-blur-md rounded-lg max-w-5xl">
         <h3 className="text-2xl font-bold mb-4 text-center">Core Advantages</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
           <div>
