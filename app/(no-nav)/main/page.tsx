@@ -39,7 +39,7 @@ export default function MainPage() {
       {/* Spline 3D 场景 */}
       <Spline
         style={{ position: 'absolute', width: '100%', height: '100%' }}
-        scene="/scene.splinecode"
+        scene="/scene4.splinecode"
         onMouseDown={onSplineMouseDown}
         onClick={onSplineClick}
       />
