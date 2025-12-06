@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
@@ -16,6 +19,7 @@ import NextLink from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
 import ConnectWallet from './ConnectWallet';
+import { PopupAssistant } from './popup-assistant';
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
 import {
@@ -28,9 +32,11 @@ import {
 } from "@/components/icons";
 
 export const Navbar = () => {
+  const [isAIOpen, setIsAIOpen] = useState(false)
   const searchInput = (
     <button
       type="button"
+      onClick={() => setIsAIOpen(true)}
       className="inline-flex items-center justify-center min-w-[72px] px-4 py-2 rounded-full bg-[#181A1E] text-[#FFE900] font-medium text-sm transition-all hover:opacity-80"
       aria-label="Toggle AI Chat"
     >
@@ -153,6 +159,9 @@ export const Navbar = () => {
           ))}
         </div>
       </NavbarMenu>
+
+      {/* AI Assistant Popup */}
+      <PopupAssistant isOpen={isAIOpen} onClose={() => setIsAIOpen(false)} />
     </HeroUINavbar>
   );
 };
