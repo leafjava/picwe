@@ -13,6 +13,7 @@ import { Link } from "@heroui/link";
 import { Input } from "@heroui/input";
 import { link as linkStyles } from "@heroui/theme";
 import NextLink from "next/link";
+import Image from "next/image";
 import clsx from "clsx";
 import ConnectWallet from './ConnectWallet';
 import { siteConfig } from "@/config/site";
@@ -61,15 +62,15 @@ export const Navbar = () => {
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
         <NavbarBrand as="li" className="gap-3 max-w-fit">
           <NextLink className="flex justify-start items-center gap-2 hover:opacity-80 transition-opacity" href="/home">
-            <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
-              <Logo className="text-white" />
+            <div className="w-24 h-24 rounded-lg flex items-center justify-center">
+              <Image src="/icon.png" alt="Cargo X CCN" width={96} height={96} className="rounded-lg" />
             </div>
-            <div className="flex flex-col">
-              <p className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
+            {/* <div className="flex flex-col">
+              <p className="font-bold text-lg text-[#FFA500]">
                 Cargo X CCN
               </p>
-              <p className="text-xs text-gray-600 hidden sm:block">Commodity Credit Network</p>
-            </div>
+              <p className="text-xs text-gray-500 hidden sm:block">Commodity Credit Network</p>
+            </div> */}
           </NextLink>
         </NavbarBrand>
         <ul className="hidden lg:flex gap-1 justify-start ml-4">
