@@ -268,6 +268,55 @@ export const ReceivablePoolAbi = [
             },
             {
                 "type": "function",
+                "name": "registerAsset",
+                "inputs": [
+                    {
+                        "name": "issuer",
+                        "type": "address",
+                        "internalType": "address"
+                    },
+                    {
+                        "name": "name",
+                        "type": "string",
+                        "internalType": "string"
+                    },
+                    {
+                        "name": "metadataURI",
+                        "type": "string",
+                        "internalType": "string"
+                    },
+                    {
+                        "name": "quantity",
+                        "type": "uint256",
+                        "internalType": "uint256"
+                    },
+                    {
+                        "name": "unit",
+                        "type": "string",
+                        "internalType": "string"
+                    },
+                    {
+                        "name": "referenceValue",
+                        "type": "uint256",
+                        "internalType": "uint256"
+                    },
+                    {
+                        "name": "status",
+                        "type": "uint8",
+                        "internalType": "enum ICommodityAssetRegistry.AssetStatus"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "name": "assetId",
+                        "type": "uint256",
+                        "internalType": "uint256"
+                    }
+                ],
+                "stateMutability": "nonpayable"
+            },
+            {
+                "type": "function",
                 "name": "registry",
                 "inputs": [],
                 "outputs": [
@@ -339,6 +388,24 @@ export const ReceivablePoolAbi = [
                         "name": "newOwner",
                         "type": "address",
                         "internalType": "address"
+                    }
+                ],
+                "outputs": [],
+                "stateMutability": "nonpayable"
+            },
+            {
+                "type": "function",
+                "name": "updateAssetStatus",
+                "inputs": [
+                    {
+                        "name": "assetId",
+                        "type": "uint256",
+                        "internalType": "uint256"
+                    },
+                    {
+                        "name": "status",
+                        "type": "uint8",
+                        "internalType": "enum ICommodityAssetRegistry.AssetStatus"
                     }
                 ],
                 "outputs": [],
@@ -521,4 +588,4 @@ export const ReceivablePoolAbi = [
                     }
                 ]
             }
-        ]as const;
+        ] as const;

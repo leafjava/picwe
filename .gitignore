@@ -41,3 +41,8 @@ bun.lockb
 
 .env
 .env.local
+.idea/modules.xml
+.idea/.gitignore
+.idea/picwe.iml
+.idea/vcs.xml
+.idea/inspectionProfiles/Project_Default.xml
