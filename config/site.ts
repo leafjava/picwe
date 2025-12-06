@@ -64,7 +64,7 @@ export const siteConfig = {
     },
   ],
   links: {
-    github: "https://github.com/heroui-inc/heroui",
+    github: "https://github.com/leafjava/picwe",
     twitter: "https://x.com/PicWeGlobal?t=Yzb-vFY7C0JApMzx0z42GQ&s=05",
     docs: "https://heroui.com",
     discord: "https://discord.gg/9b6yyZKmH4",

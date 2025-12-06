@@ -13,11 +13,8 @@ export default function HomePage() {
     <section className="flex flex-col items-center justify-center gap-16 py-16 md:py-20 min-h-screen">
       {/* 标题区域 - 深色极客风格 */}
       <div className="text-center max-w-4xl px-4">
-        <h1 className="text-5xl md:text-7xl font-bold mb-6">
-          <span className="text-white">Cargo X </span>
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600">
-            Commodity Credit Network
-          </span>
+        <h1 className="text-5xl md:text-7xl font-bold mb-6 text-[#FFA500]">
+          Cargo X Commodity Credit Network
         </h1>
         <p className="text-xl md:text-2xl text-gray-400 mb-4 font-light">
           Global Commodity Financing & Settlement Platform
