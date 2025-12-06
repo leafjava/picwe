@@ -30,7 +30,7 @@ export default function MainPage() {
   function onSplineClick(e: any) {
     console.log('Click event:', e);
     if (e.target) {
-      // router.push('/home');
+      router.push('/home');
     }
   }
 
@@ -38,8 +38,8 @@ export default function MainPage() {
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
       {/* Spline 3D 场景 */}
       <Spline
-        style={{ position: 'absolute', width: '100%', height: '100%' }}
-        scene="/scene4.splinecode"
+        style={{  width: '100%', height: '100%' }}
+        scene="/scene6.splinecode"
         onMouseDown={onSplineMouseDown}
         onClick={onSplineClick}
       />

@@ -7,10 +7,10 @@ export default function WithNavLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative flex flex-col min-h-screen">
+    <div className="relative flex flex-col min-h-screen bg-black">
       {/* 导航栏 */}
       <Navbar />
-      <Background />
+      {/* <Background /> */}
       {/* Spline 3D 背景 - 固定全屏 */}
       {/* <div className="fixed inset-0 w-full h-full -z-10">
         
