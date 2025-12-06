@@ -7,6 +7,7 @@ import { Input } from '@heroui/input';
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/modal';
 import { Chip } from '@heroui/chip';
+import Image from 'next/image';
 
 /**
  * 商品数据接口
@@ -52,7 +53,20 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="relative min-h-screen">
+      {/* 背景图片 */}
+      <div className="fixed inset-0 z-0">
+        <Image
+          src="/background.png"
+          alt="background"
+          fill
+          className="object-cover opacity-30"
+          priority
+        />
+      </div>
+      
+      {/* 内容区域 */}
+      <div className="relative z-10 container mx-auto px-4 py-12">
       {/* 页面标题 */}
       <div className="flex justify-between items-center mb-12">
         <div>
@@ -229,6 +243,7 @@ export default function ProductsPage() {
           </ModalFooter>
         </ModalContent>
       </Modal>
+      </div>
     </div>
   );
 }
