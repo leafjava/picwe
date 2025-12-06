@@ -56,6 +56,13 @@ const statusLabel = (status: number) => {
 
 const formatPrice = (value: bigint) => value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
+const toAddress = (val?: string) => {
+  if (!val) return null;
+  const trimmed = val.trim();
+  if (!/^0x[0-9a-fA-F]{40}$/.test(trimmed)) return null;
+  return trimmed as `0x${string}`;
+};
+
 export default function FinancingPage() {
   const { address, isConnected } = useAccount();
   const { connectors, connect, isPending: isConnecting } = useConnect();
@@ -163,7 +170,7 @@ export default function FinancingPage() {
           return;
         }
         const calls = Array.from({ length: total }, (_v, i) => ({
-          address: REGISTRY_ADDRESS,
+          address: REGISTRY_ADDRESS as `0x${string}`,
           abi: CommodityAssetRegistryAbi,
           functionName: 'getAsset' as const,
           args: [BigInt(i)],
@@ -211,15 +218,17 @@ export default function FinancingPage() {
   }, [success, refetchNextDealId]);
 
   const handleCreateDeal = () => {
-    if (!parsedAssetId || !borrower || !payer) {
-      alert('Please select asset and fill in borrower / payer');
+    const borrowerAddr = toAddress(borrower);
+    const payerAddr = toAddress(payer);
+    if (!parsedAssetId || !borrowerAddr || !payerAddr) {
+      alert('Please select asset and fill in valid borrower / payer');
       return;
     }
     writeContract({
       address: RECEIVABLE_POOL_ADDRESS,
       abi: ReceivablePoolAbi,
       functionName: 'createFinancingDeal',
-      args: [parsedAssetId, borrower, payer, Number(interestRateBps), BigInt(tenorDays)],
+      args: [parsedAssetId, borrowerAddr, payerAddr, Number(interestRateBps), BigInt(tenorDays)],
     });
   };
 
@@ -335,7 +344,7 @@ export default function FinancingPage() {
                   isDisabled={loadingAssets || assets.length === 0}
                 >
                   {assets.map((asset) => (
-                    <SelectItem key={asset.id.toString()} value={asset.id.toString()}>
+                    <SelectItem key={asset.id.toString()}>
                       #{asset.id.toString()} · {asset.name}
                     </SelectItem>
                   ))}

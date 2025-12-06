@@ -45,6 +45,13 @@ const toBigIntInput = (val?: string) => {
 const formatNum = (v?: bigint) =>
   v === undefined ? '-' : v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
+const toAddress = (val?: string) => {
+  if (!val) return null;
+  const trimmed = val.trim();
+  if (!/^0x[0-9a-fA-F]{40}$/.test(trimmed)) return null;
+  return trimmed as `0x${string}`;
+};
+
 export default function PoolsPage() {
   const { address, isConnected } = useAccount();
   const { connectors, connect, isPending: isConnecting } = useConnect();
@@ -224,15 +231,16 @@ export default function PoolsPage() {
   };
 
   const handleMint = () => {
-    if (!mintTo || !parsedMintAmount) {
-      alert('Please fill in mint address and amount');
+    const mintToAddr = toAddress(mintTo);
+    if (!mintToAddr || !parsedMintAmount) {
+      alert('Please fill in a valid mint address and amount');
       return;
     }
     writeToken({
       address: MOCK_USDT_ADDRESS,
       abi: MockUSDTAbi,
       functionName: 'mint',
-      args: [mintTo, parsedMintAmount],
+      args: [mintToAddr, parsedMintAmount],
     });
   };
 
@@ -449,7 +457,7 @@ export default function PoolsPage() {
                 }}
               >
                 {assets.map((asset) => (
-                  <SelectItem key={asset.id.toString()} value={asset.id.toString()}>
+                  <SelectItem key={asset.id.toString()}>
                     #{asset.id.toString()} · {asset.name}
                   </SelectItem>
                 ))}
@@ -544,16 +552,16 @@ export default function PoolsPage() {
                   listbox: 'bg-[#141414] text-white',
                 }}
               >
-                <SelectItem key="0" value="0">
+                <SelectItem key="0">
                   0 - Registered
                 </SelectItem>
-                <SelectItem key="1" value="1">
+                <SelectItem key="1">
                   1 - InTransit
                 </SelectItem>
-                <SelectItem key="2" value="2">
+                <SelectItem key="2">
                   2 - Collateralized
                 </SelectItem>
-                <SelectItem key="3" value="3">
+                <SelectItem key="3">
                   3 - Cleared
                 </SelectItem>
               </Select>

@@ -33,6 +33,13 @@ const toBigIntInput = (val: string) => {
     return BigInt(trimmed);
 };
 
+const toAddress = (val?: string) => {
+    if (!val) return null;
+    const trimmed = val.trim();
+    if (!/^0x[0-9a-fA-F]{40}$/.test(trimmed)) return null;
+    return trimmed as `0x${string}`;
+};
+
 const styles = {
     page: {
         minHeight: "100vh",
@@ -156,8 +163,9 @@ function RegisterAssetTest() {
     });
 
     const handleRegister = () => {
-        if (!issuer || !name || !quantity || !referenceValue || !unit) {
-            alert("请先把必填字段填完整");
+        const issuerAddr = toAddress(issuer);
+        if (!issuerAddr || !name || !quantity || !referenceValue || !unit) {
+            alert("请先把必填字段填完整，并提供合法的发行人地址");
             return;
         }
 
@@ -167,7 +175,7 @@ function RegisterAssetTest() {
                 abi: ReceivablePoolAbi,
                 functionName: "registerAsset",
                 args: [
-                    issuer,
+                    issuerAddr,
                     name,
                     metadataURI,
                     BigInt(quantity),        // uint256
@@ -582,8 +590,10 @@ function ReceivablePoolTest() {
     });
 
     const handleCreateDeal = () => {
-        if (!parsedAssetId || !borrower || !payer) {
-            alert("请填写 assetId / borrower / payer");
+        const borrowerAddr = toAddress(borrower);
+        const payerAddr = toAddress(payer);
+        if (!parsedAssetId || !borrowerAddr || !payerAddr) {
+            alert("请填写 assetId / borrower / payer (有效地址)");
             return;
         }
 
@@ -593,8 +603,8 @@ function ReceivablePoolTest() {
             functionName: "createFinancingDeal",
             args: [
                 parsedAssetId,
-                borrower,
-                payer,
+                borrowerAddr,
+                payerAddr,
                 Number(interestRateBps),
                 BigInt(tenorDays),
             ],
@@ -902,8 +912,9 @@ function MockUSDTTest() {
     } = useWaitForTransactionReceipt({ hash: mintTx });
 
     const handleMint = () => {
-        if (!mintTo || !mintAmount) {
-            alert("请填写 mint 地址和数量");
+        const mintAddr = toAddress(mintTo);
+        if (!mintAddr || !mintAmount) {
+            alert("请填写合法的 mint 地址和数量");
             return;
         }
 
@@ -911,7 +922,7 @@ function MockUSDTTest() {
             address: MOCK_USDT_ADDRESS,
             abi: MockUSDTAbi,
             functionName: "mint",
-            args: [mintTo, BigInt(mintAmount)],
+            args: [mintAddr, BigInt(mintAmount)],
         });
     };
 

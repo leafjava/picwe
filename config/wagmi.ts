@@ -1,34 +1,17 @@
 import { http, createConfig } from 'wagmi';
 import { bscTestnet } from 'wagmi/chains';
-import { injected, walletConnect } from 'wagmi/connectors';
+import { injected } from 'wagmi/connectors';
 
-// WalletConnect 项目 ID
-const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'bcf0a04ae46d867e40bbca30439e6cc3';
+// 临时简化，只保留 injected 以绕过 WalletConnect 类型冲突，先让构建通过
+const connectors = [
+  injected({
+    shimDisconnect: true,
+  }),
+];
 
-// connectors 构建函数
-const getConnectors = () => {
-  const connectors = [
-    injected({
-      shimDisconnect: true,
-    }),
-  ];
-
-  if (walletConnectProjectId) {
-    connectors.push(
-      walletConnect({
-        projectId: walletConnectProjectId,
-        showQrModal: true,
-      })
-    );
-  }
-
-  return connectors;
-};
-
-// ⭐ 这里是关键：链 + RPC 配置
 export const wagmiConfig = createConfig({
   chains: [bscTestnet],
-  connectors: getConnectors(),
+  connectors,
   transports: {
     [bscTestnet.id]: http('https://data-seed-prebsc-2-s1.binance.org:8545'),
   },

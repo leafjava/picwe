@@ -45,6 +45,13 @@ const toBigIntInput = (val: string) => {
   }
 };
 
+const toAddress = (val?: string) => {
+  if (!val) return null;
+  const trimmed = val.trim();
+  if (!/^0x[0-9a-fA-F]{40}$/.test(trimmed)) return null;
+  return trimmed as `0x${string}`;
+};
+
 const statusLabel = (status: number) => {
   const map: Record<number, string> = {
     0: 'Registered',
@@ -170,8 +177,9 @@ export default function ProductsPage() {
   }, [publicClient, nextAssetId, reloadKey]);
 
   const handleRegister = () => {
-    if (!formIssuer || !formName || !parsedQuantity || !parsedRefValue || !formUnit) {
-      alert('Please fill in all required fields');
+    const issuerAddr = toAddress(formIssuer);
+    if (!issuerAddr || !formName || !parsedQuantity || !parsedRefValue || !formUnit) {
+      alert('Please fill in all required fields and a valid issuer address');
       return;
     }
     writeRegister({
@@ -179,7 +187,7 @@ export default function ProductsPage() {
       abi: ReceivablePoolAbi,
       functionName: 'registerAsset',
       args: [
-        formIssuer,
+        issuerAddr,
         formName,
         formMetadata,
         parsedQuantity,
@@ -422,7 +430,7 @@ export default function ProductsPage() {
               }}
             >
               {statusOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
+                <SelectItem key={opt.value}>
                   {opt.label}
                 </SelectItem>
               ))}
