@@ -1,60 +1,205 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/modal';
 import { Chip } from '@heroui/chip';
+import { useDisclosure } from '@heroui/modal';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/modal';
+import { Spinner } from '@heroui/spinner';
+import { Select, SelectItem } from '@heroui/select';
 import Image from 'next/image';
+import {
+  useAccount,
+  useConnect,
+  useDisconnect,
+  useReadContract,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+  usePublicClient,
+} from 'wagmi';
+import { CommodityAssetRegistryAbi } from '@/lib/abi/CommodityAssetRegistry';
+import { ReceivablePoolAbi } from '@/lib/abi/ReceivablePool';
+import { REGISTRY_ADDRESS, RECEIVABLE_POOL_ADDRESS } from '@/lib/contracts';
 
-/**
- * 商品数据接口
- */
-interface Product {
-  id: string;
+type OnChainAsset = {
+  id: bigint;
   name: string;
-  quantity: number;
-  value: number;
-  status: string;
-  createdAt: string;
-}
+  quantity: bigint;
+  unit: string;
+  referenceValue: bigint;
+  issuer: string;
+  status: number;
+  metadataURI: string;
+};
 
-/**
- * 商品管理页面 - 深色极客风格
- */
+const toBigIntInput = (val: string) => {
+  const trimmed = val.trim();
+  if (!trimmed) return undefined;
+  try {
+    return BigInt(trimmed);
+  } catch {
+    return undefined;
+  }
+};
+
+const statusLabel = (status: number) => {
+  const map: Record<number, string> = {
+    0: 'Pending',
+    1: 'Active',
+    2: 'Cleared',
+    3: 'Defaulted',
+  };
+  return map[status] ?? `#${status}`;
+};
+
+const statusOptions = [
+  { value: '0', label: 'Pending' },
+  { value: '1', label: 'Active' },
+  { value: '2', label: 'Cleared' },
+  { value: '3', label: 'Defaulted' },
+];
+
+const formatPrice = (value: bigint) => {
+  const str = value.toString();
+  return str.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+
+const Pill = ({ text, className }: { text: string; className: string }) => (
+  <div
+    className={`px-3 py-1 rounded-full text-xs font-semibold border ${className}`}
+  >
+    {text}
+  </div>
+);
+
 export default function ProductsPage() {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  
-  const [products, setProducts] = useState<Product[]>([
-    { id: 'PROD001', name: 'Copper Ore', quantity: 1000, value: 500000, status: 'Registered', createdAt: '2025-12-01' },
-    { id: 'PROD002', name: 'Crude Oil', quantity: 5000, value: 2000000, status: 'Registered', createdAt: '2025-12-02' },
-  ]);
+  const { address, isConnected } = useAccount();
+  const { connectors, connect, isPending: isConnecting } = useConnect();
+  const { disconnect } = useDisconnect();
+  const publicClient = usePublicClient();
 
-  const [formData, setFormData] = useState({
-    name: '',
-    quantity: '',
-    value: '',
+  const [assets, setAssets] = useState<OnChainAsset[]>([]);
+  const [isLoadingAssets, setIsLoadingAssets] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const [formName, setFormName] = useState('Copper');
+  const [formUnit, setFormUnit] = useState('ton');
+  const [formQuantity, setFormQuantity] = useState('1000');
+  const [formRefValue, setFormRefValue] = useState('10000000');
+  const [formMetadata, setFormMetadata] = useState('https://metadata.example.com/copper/1');
+  const [formStatus, setFormStatus] = useState('0');
+  const [formIssuer, setFormIssuer] = useState('');
+  const [reloadKey, setReloadKey] = useState(0);
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (address) setFormIssuer((prev) => prev || address);
+  }, [address]);
+
+  const { data: nextAssetId, refetch: refetchNextAssetId } = useReadContract({
+    address: REGISTRY_ADDRESS,
+    abi: CommodityAssetRegistryAbi,
+    functionName: 'nextAssetId',
   });
 
-  const handleSubmit = () => {
-    const newProduct: Product = {
-      id: `PROD${String(products.length + 1).padStart(3, '0')}`,
-      name: formData.name,
-      quantity: Number(formData.quantity),
-      value: Number(formData.value),
-      status: 'Registered',
-      createdAt: new Date().toISOString().split('T')[0],
+  const {
+    data: registerHash,
+    writeContract: writeRegister,
+    isPending: registering,
+    error: registerError,
+  } = useWriteContract();
+  const { isSuccess: registerSuccess, isLoading: registerConfirming } = useWaitForTransactionReceipt({
+    hash: registerHash,
+  });
+
+  const parsedQuantity = useMemo(() => toBigIntInput(formQuantity), [formQuantity]);
+  const parsedRefValue = useMemo(() => toBigIntInput(formRefValue), [formRefValue]);
+  const parsedStatus = useMemo(() => Number(formStatus || '0'), [formStatus]);
+
+  useEffect(() => {
+    const fetchAssets = async () => {
+      if (!publicClient || nextAssetId === undefined) return;
+      setIsLoadingAssets(true);
+      setLoadError(null);
+      try {
+        const total = Number(nextAssetId);
+        if (total === 0) {
+          setAssets([]);
+          return;
+        }
+        const calls = Array.from({ length: total }, (_v, i) => ({
+          address: REGISTRY_ADDRESS,
+          abi: CommodityAssetRegistryAbi,
+          functionName: 'getAsset' as const,
+          args: [BigInt(i)],
+        }));
+
+        const result = await publicClient.multicall({
+          allowFailure: true,
+          contracts: calls,
+        });
+
+        const parsed: OnChainAsset[] = [];
+        result.forEach((res, idx) => {
+          if (res.status === 'success') {
+            const asset = res.result as any;
+            parsed.push({
+              id: BigInt(idx),
+              name: asset.name,
+              metadataURI: asset.metadataURI,
+              quantity: BigInt(asset.quantity),
+              unit: asset.unit,
+              referenceValue: BigInt(asset.referenceValue),
+              issuer: asset.issuer,
+              status: Number(asset.status),
+            });
+          }
+        });
+        setAssets(parsed);
+      } catch (err: any) {
+        setLoadError(err?.message || '加载失败');
+      } finally {
+        setIsLoadingAssets(false);
+      }
     };
-    setProducts([...products, newProduct]);
-    setFormData({ name: '', quantity: '', value: '' });
-    onClose();
+    fetchAssets();
+  }, [publicClient, nextAssetId, reloadKey]);
+
+  const handleRegister = () => {
+    if (!formIssuer || !formName || !parsedQuantity || !parsedRefValue || !formUnit) {
+      alert('请先把必填字段填好');
+      return;
+    }
+    writeRegister({
+      address: RECEIVABLE_POOL_ADDRESS,
+      abi: ReceivablePoolAbi,
+      functionName: 'registerAsset',
+      args: [
+        formIssuer,
+        formName,
+        formMetadata,
+        parsedQuantity,
+        formUnit,
+        parsedRefValue,
+        parsedStatus,
+      ],
+    });
   };
+
+  useEffect(() => {
+    if (registerSuccess) {
+      onClose();
+      setReloadKey((k) => k + 1);
+      refetchNextAssetId();
+    }
+  }, [registerSuccess, onClose, refetchNextAssetId]);
 
   return (
     <div className="relative min-h-screen">
-      {/* 背景图片 */}
       <div className="fixed inset-0 z-0">
         <Image
           src="/background.png"
@@ -64,186 +209,248 @@ export default function ProductsPage() {
           priority
         />
       </div>
-      
-      {/* 内容区域 */}
+
       <div className="relative z-10 container mx-auto px-4 py-12">
-      {/* 页面标题 */}
-      <div className="flex justify-between items-center mb-12">
-        <div>
-          <h1 className="text-4xl font-bold text-[#FFA500] mb-2">
-            Product Management
-          </h1>
-          <p className="text-gray-500">Register and manage your commodity assets with unique on-chain asset IDs</p>
-        </div>
-        <Button 
-          onPress={onOpen}
-          className="bg-zinc-800 hover:bg-zinc-700 text-gray-300 font-medium border border-zinc-700"
-          size="lg"
-        >
-          Get Started
-        </Button>
-      </div>
-
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="bg-[#141414] border border-zinc-800 hover:border-[#FFA500] transition-colors">
-          <CardBody className="p-6">
-            <div className="text-center">
-              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                <span className="text-3xl opacity-60">🔒</span>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-12">
+          <div>
+            <h1 className="text-4xl font-bold text-[#FFA500] mb-2">On-chain Assets</h1>
+            <p className="text-gray-500">直接读取 Registry / Pool 的真实资产数据</p>
+          </div>
+          {isConnected ? (
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-gray-400">
+                <p>地址：{address}</p>
               </div>
-              <p className="text-lg font-semibold text-gray-300 mb-2">Product Management</p>
-              <p className="text-sm text-gray-500">Register and manage your commodity</p>
+              <Button
+                onPress={() => disconnect()}
+                className="bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
+              >
+                断开
+              </Button>
             </div>
-          </CardBody>
-        </Card>
-
-        <Card className="bg-[#141414] border-2 border-[#FFA500] hover:border-[#FFB800] transition-colors">
-          <CardBody className="p-6">
-            <div className="text-center">
-              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                <span className="text-3xl opacity-80">🔒</span>
-              </div>
-              <p className="text-lg font-semibold text-gray-300 mb-2">Product Management</p>
-              <p className="text-sm text-gray-500">Register and manage your commodity</p>
-            </div>
-          </CardBody>
-        </Card>
-
-        <Card className="bg-[#141414] border border-zinc-800 hover:border-[#FFA500] transition-colors">
-          <CardBody className="p-6">
-            <div className="text-center">
-              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                <span className="text-3xl opacity-60">🔒</span>
-              </div>
-              <p className="text-lg font-semibold text-gray-300 mb-2">Product Management</p>
-              <p className="text-sm text-gray-500">Register and manage your commodity</p>
-            </div>
-          </CardBody>
-        </Card>
-      </div>
-
-      {/* 商品列表 */}
-      <Card className="bg-[#141414] border border-zinc-800">
-        <CardHeader className="border-b border-zinc-800 p-6">
-          <h2 className="text-xl font-semibold text-gray-300">Registered Products</h2>
-        </CardHeader>
-        <CardBody className="p-6">
-          <Table 
-            aria-label="Product list"
-            classNames={{
-              wrapper: "bg-transparent shadow-none",
-              th: "bg-transparent text-gray-500 font-medium text-xs uppercase",
-              td: "text-gray-400 border-b border-zinc-800/50",
-            }}
-          >
-            <TableHeader>
-              <TableColumn>PRODUCT ID</TableColumn>
-              <TableColumn>PRODUCT NAME</TableColumn>
-              <TableColumn>QUANTITY</TableColumn>
-              <TableColumn>VALUE (USDT)</TableColumn>
-              <TableColumn>STATUS</TableColumn>
-              <TableColumn>CREATED AT</TableColumn>
-            </TableHeader>
-            <TableBody>
-              {products.map((product) => (
-                <TableRow key={product.id} className="hover:bg-zinc-900/30 transition-colors">
-                  <TableCell>
-                    <span className="font-mono text-gray-400">{product.id}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-medium text-gray-300">{product.name}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-gray-400">{product.quantity.toLocaleString()}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-gray-400">
-                      ${product.value.toLocaleString()}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Chip className="bg-transparent text-gray-500 border border-zinc-700" size="sm" variant="bordered">
-                      {product.status}
-                    </Chip>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-gray-500">{product.createdAt}</span>
-                  </TableCell>
-                </TableRow>
+          ) : (
+            <div className="flex gap-2">
+              {connectors.map((connector) => (
+                <Button
+                  key={connector.uid}
+                  onPress={() => connect({ connector })}
+                  isDisabled={isConnecting}
+                  className="bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
+                >
+                  {connector.name}
+                </Button>
               ))}
-            </TableBody>
-          </Table>
-        </CardBody>
-      </Card>
+            </div>
+          )}
+        </div>
 
-      {/* 注册模态框 */}
+        <div className="flex flex-wrap gap-2 mb-8 text-sm">
+          <Pill
+            text={`Registry: ${REGISTRY_ADDRESS}`}
+            className="bg-amber-400 text-black border-amber-300/80 shadow-sm"
+          />
+          <Pill
+            text={`Pool: ${RECEIVABLE_POOL_ADDRESS}`}
+            className="bg-sky-300 text-black border-sky-200/80 shadow-sm"
+          />
+          <Pill
+            text={`nextAssetId: ${nextAssetId !== undefined ? String(nextAssetId) : '-'}`}
+            className="bg-emerald-300 text-black border-emerald-200/80 shadow-sm"
+          />
+        </div>
+
+        <div className="mb-6 flex items-center justify-between">
+          <div className="text-gray-400 text-sm">
+            资产列表来自链上：Registry.getAsset(0..nextAssetId-1)
+          </div>
+          <Button
+            onPress={onOpen}
+            className="bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
+          >
+            注册新资产（Pool owner）
+          </Button>
+        </div>
+
+        <Card className="bg-[#141414] border border-zinc-800">
+          <CardHeader className="border-b border-zinc-800 p-6 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-300">Registered Assets</h2>
+            {isLoadingAssets && <Spinner size="sm" color="warning" />}
+          </CardHeader>
+          <CardBody className="p-6">
+            {loadError && <p className="text-red-400 mb-3 text-sm">加载失败：{loadError}</p>}
+            <Table
+              aria-label="asset list"
+              selectionMode="single"
+              selectedKeys={selectedRows}
+              onSelectionChange={(keys) => setSelectedRows(keys as Set<string>)}
+              classNames={{
+                wrapper: 'bg-transparent shadow-none',
+                th: 'bg-transparent text-gray-500 font-medium text-xs uppercase',
+                td: 'text-gray-300 border-b border-zinc-800/50',
+              }}
+            >
+              <TableHeader>
+                <TableColumn>ID</TableColumn>
+                <TableColumn>NAME</TableColumn>
+                <TableColumn>QTY</TableColumn>
+                <TableColumn>UNIT</TableColumn>
+                <TableColumn>PRICE (USDT)</TableColumn>
+                <TableColumn>ISSUER</TableColumn>
+                <TableColumn>STATUS</TableColumn>
+                <TableColumn>METADATA</TableColumn>
+              </TableHeader>
+              <TableBody
+                emptyContent={
+                  isLoadingAssets ? '加载中...' : '暂无链上资产'
+                }
+              >
+                {assets.map((asset) => (
+                  <TableRow key={asset.id.toString()} className="hover:bg-zinc-900/30 transition-colors">
+                    <TableCell className="font-mono text-xs text-gray-400">
+                      {asset.id.toString()}
+                    </TableCell>
+                    <TableCell className="font-medium text-gray-200">{asset.name}</TableCell>
+                    <TableCell>{asset.quantity.toString()}</TableCell>
+                    <TableCell>{asset.unit}</TableCell>
+                    <TableCell>${formatPrice(asset.referenceValue)}</TableCell>
+                    <TableCell className="text-xs text-gray-400 break-all">{asset.issuer}</TableCell>
+                    <TableCell>
+                      <Chip size="sm" className="bg-transparent border border-zinc-700 text-gray-300">
+                        {statusLabel(asset.status)}
+                      </Chip>
+                    </TableCell>
+                    <TableCell className="text-xs text-gray-400 break-all">
+                      {asset.metadataURI || '-'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {selectedRows.size > 0 && (
+              <p className="mt-3 text-xs text-gray-400">
+                已选资产 ID：{Array.from(selectedRows).join(', ')}
+              </p>
+            )}
+          </CardBody>
+        </Card>
+      </div>
+
       <Modal isOpen={isOpen} onClose={onClose} size="2xl" className="bg-[#141414] border border-zinc-800">
         <ModalContent>
           <ModalHeader className="border-b border-zinc-800 text-gray-300">
-            Register New Product
+            注册新资产（Pool.registerAsset）
           </ModalHeader>
-          <ModalBody className="py-6">
-            <div className="space-y-4">
+          <ModalBody className="py-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Input
-                label="Product Name"
-                placeholder="Enter product name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                label="发行人 issuer"
+                value={formIssuer}
+                onChange={(e) => setFormIssuer(e.target.value)}
                 classNames={{
-                  input: "bg-zinc-900 text-gray-300",
-                  inputWrapper: "bg-zinc-900 border-zinc-700",
-                  label: "text-gray-500",
+                  inputWrapper: 'bg-zinc-800 border border-zinc-600 text-gray-100',
+                  label: 'text-gray-200',
+                  input: 'text-gray-50',
                 }}
-                variant="bordered"
               />
               <Input
-                label="Quantity"
-                type="number"
-                placeholder="Enter quantity"
-                value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                label="名称 name"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
                 classNames={{
-                  input: "bg-zinc-900 text-gray-300",
-                  inputWrapper: "bg-zinc-900 border-zinc-700",
-                  label: "text-gray-500",
+                  inputWrapper: 'bg-zinc-800 border border-zinc-600 text-gray-100',
+                  label: 'text-gray-200',
+                  input: 'text-gray-50',
                 }}
-                variant="bordered"
-              />
-              <Input
-                label="Value (USDT)"
-                type="number"
-                placeholder="Enter value"
-                value={formData.value}
-                onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                classNames={{
-                  input: "bg-zinc-900 text-gray-300",
-                  inputWrapper: "bg-zinc-900 border-zinc-700",
-                  label: "text-gray-500",
-                }}
-                variant="bordered"
-                startContent={<span className="text-gray-500">$</span>}
               />
             </div>
+            <Input
+              label="metadataURI"
+              value={formMetadata}
+              onChange={(e) => setFormMetadata(e.target.value)}
+              classNames={{
+                inputWrapper: 'bg-zinc-800 border border-zinc-600 text-gray-100',
+                label: 'text-gray-200',
+                input: 'text-gray-50',
+              }}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <Input
+                label="quantity (uint256)"
+                type="number"
+                value={formQuantity}
+                onChange={(e) => setFormQuantity(e.target.value)}
+                classNames={{
+                  inputWrapper: 'bg-zinc-800 border border-zinc-600 text-gray-100',
+                  label: 'text-gray-200',
+                  input: 'text-gray-50',
+                }}
+              />
+              <Input
+                label="unit"
+                value={formUnit}
+                onChange={(e) => setFormUnit(e.target.value)}
+                classNames={{
+                  inputWrapper: 'bg-zinc-800 border border-zinc-600 text-gray-100',
+                  label: 'text-gray-200',
+                  input: 'text-gray-50',
+                }}
+              />
+              <Input
+                label="参考价值 / Price (uint256)"
+                type="number"
+                value={formRefValue}
+                onChange={(e) => setFormRefValue(e.target.value)}
+                classNames={{
+                  inputWrapper: 'bg-zinc-800 border border-zinc-600 text-gray-100',
+                  label: 'text-gray-200',
+                  input: 'text-gray-50',
+                }}
+              />
+            </div>
+            <Select
+              label="状态 status"
+              placeholder="选择资产状态"
+              selectedKeys={new Set([formStatus])}
+              onSelectionChange={(keys) => {
+                const v = Array.from(keys)[0] as string;
+                setFormStatus(v);
+              }}
+              classNames={{
+                trigger: 'bg-zinc-800 border border-zinc-600 text-gray-100',
+                label: 'text-gray-200',
+                listbox: 'bg-[#141414]',
+              }}
+            >
+              {statusOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </Select>
+            {registerError && (
+              <p className="text-sm text-red-400">错误：{registerError.message}</p>
+            )}
           </ModalBody>
           <ModalFooter className="border-t border-zinc-800">
-            <Button 
-              variant="light" 
-              onPress={onClose}
-              className="text-gray-500"
-            >
-              Cancel
+            <Button variant="light" onPress={onClose} className="text-gray-500">
+              取消
             </Button>
-            <Button 
-              onPress={handleSubmit}
+            <Button
+              onPress={handleRegister}
+              isLoading={registering || registerConfirming}
               className="bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
             >
-              Get Started
+              提交
             </Button>
+            {registerHash && (
+              <span className="text-xs text-gray-400">
+                tx: {registerHash.slice(0, 10)}...{registerHash.slice(-6)}
+              </span>
+            )}
+            {registerSuccess && <span className="text-xs text-emerald-400">已上链</span>}
           </ModalFooter>
         </ModalContent>
       </Modal>
-      </div>
     </div>
   );
 }

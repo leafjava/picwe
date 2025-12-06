@@ -20,14 +20,6 @@ export const siteConfig = {
       label: "Pools", // 融资池
       href: "/pools",
     },
-    {
-      label: "Settlement", // 结算中心
-      href: "/settlement",
-    },
-    {
-      label: "Analytics", // 数据分析
-      href: "/analytics",
-    },
   ],
   navMenuItems: [
     {

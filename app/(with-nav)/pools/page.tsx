@@ -1,159 +1,583 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
-import { Progress } from '@heroui/progress';
+import { Chip } from '@heroui/chip';
+import { Spinner } from '@heroui/spinner';
+import { Select, SelectItem } from '@heroui/select';
+import { useAccount, useConnect, useDisconnect, usePublicClient, useReadContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { CommodityAssetRegistryAbi } from '@/lib/abi/CommodityAssetRegistry';
+import { ReceivablePoolAbi } from '@/lib/abi/ReceivablePool';
+import { REGISTRY_ADDRESS, RECEIVABLE_POOL_ADDRESS, MOCK_USDT_ADDRESS } from '@/lib/contracts';
+import { MockUSDTAbi } from '@/lib/abi/MockUSDT';
 
-/**
- * 融资池数据接口
- */
-interface Pool {
-  id: string;           // 融资池ID
-  name: string;         // 融资池名称
-  apy: string;          // 年化收益率
-  totalValue: number;   // 总池资金
-  available: number;    // 可用资金
-  myInvestment: number; // 我的投资金额
-  icon: string;         // 图标
-  color: string;        // 主题颜色
-}
+type Asset = {
+  id: bigint;
+  name: string;
+  unit: string;
+  quantity: bigint;
+  referenceValue: bigint;
+  status: number;
+};
 
-/**
- * 融资池参与页面
- * 功能：查看融资池信息，LP存入USDT参与融资
- */
+const statusLabel = (s: number) => {
+  const map: Record<number, string> = {
+    0: 'Pending',
+    1: 'Active',
+    2: 'Cleared',
+    3: 'Defaulted',
+  };
+  return map[s] ?? `#${s}`;
+};
+
+const toBigIntInput = (val?: string) => {
+  if (!val) return undefined;
+  try {
+    return BigInt(val.trim());
+  } catch {
+    return undefined;
+  }
+};
+
+const formatNum = (v?: bigint) =>
+  v === undefined ? '-' : v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
 export default function PoolsPage() {
-  // 融资池列表数据
-  const [pools] = useState<Pool[]>([
-    {
-      id: 'POOL001',
-      name: 'Receivables Financing Pool',
-      apy: '8.5%',
-      totalValue: 10000000,
-      available: 5000000,
-      myInvestment: 50000,
-      icon: '💎',
-      color: 'green',
-    },
-    {
-      id: 'POOL002',
-      name: 'Warehouse Receipt Pool',
-      apy: '6.2%',
-      totalValue: 8000000,
-      available: 3000000,
-      myInvestment: 30000,
-      icon: '📦',
-      color: 'blue',
-    },
-    {
-      id: 'POOL003',
-      name: 'Prepayment Financing Pool',
-      apy: '7.8%',
-      totalValue: 5000000,
-      available: 2000000,
-      myInvestment: 0,
-      icon: '🏦',
-      color: 'purple',
-    },
-  ]);
+  const { address, isConnected } = useAccount();
+  const { connectors, connect, isPending: isConnecting } = useConnect();
+  const { disconnect } = useDisconnect();
+  const publicClient = usePublicClient();
 
-  const [depositAmount, setDepositAmount] = useState('');
-  const [selectedPool, setSelectedPool] = useState('');
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadingAssets, setLoadingAssets] = useState(false);
+  const [depositAmount, setDepositAmount] = useState<string>('');
+  const [selectedAssetId, setSelectedAssetId] = useState<string>('');
+  const [statusAssetId, setStatusAssetId] = useState('');
+  const [newStatus, setNewStatus] = useState('1');
+  const [mintTo, setMintTo] = useState('');
+  const [mintAmount, setMintAmount] = useState('1000000'); // 1 USDT
+  const [approveAmount, setApproveAmount] = useState('100000000'); // 默认 100 USDT
 
-  /**
-   * 处理存入资金操作
-   */
-  const handleDeposit = (poolId: string) => {
-    setSelectedPool(poolId);
-    alert(`Deposit ${depositAmount} USDT to pool ${poolId}`);
-    setDepositAmount('');
+  const parsedDepositAmount = useMemo(() => toBigIntInput(depositAmount), [depositAmount]);
+  const parsedSelectedAssetId = useMemo(() => toBigIntInput(selectedAssetId), [selectedAssetId]);
+  const parsedStatusAssetId = useMemo(() => toBigIntInput(statusAssetId), [statusAssetId]);
+  const parsedMintAmount = useMemo(() => toBigIntInput(mintAmount), [mintAmount]);
+  const parsedApproveAmount = useMemo(() => toBigIntInput(approveAmount), [approveAmount]);
+
+  useEffect(() => {
+    if (address) {
+      setMintTo((prev) => prev || address);
+    }
+  }, [address]);
+
+  const { data: nextAssetId } = useReadContract({
+    address: REGISTRY_ADDRESS,
+    abi: CommodityAssetRegistryAbi,
+    functionName: 'nextAssetId',
+  });
+
+  const {
+    data: txHash,
+    writeContract,
+    isPending,
+    error: writeError,
+  } = useWriteContract();
+  const { isLoading: confirming, isSuccess: success } = useWaitForTransactionReceipt({ hash: txHash });
+
+  const {
+    data: statusTx,
+    writeContract: writeStatus,
+    isPending: statusPending,
+    error: statusError,
+  } = useWriteContract();
+  const { isLoading: statusConfirming, isSuccess: statusSuccess } = useWaitForTransactionReceipt({
+    hash: statusTx,
+  });
+
+  const {
+    data: tokenTx,
+    writeContract: writeToken,
+    isPending: tokenPending,
+    error: tokenError,
+  } = useWriteContract();
+  const { isLoading: tokenConfirming, isSuccess: tokenSuccess } = useWaitForTransactionReceipt({
+    hash: tokenTx,
+  });
+
+  const { data: poolDeposits } = useReadContract({
+    address: RECEIVABLE_POOL_ADDRESS,
+    abi: ReceivablePoolAbi,
+    functionName: 'poolTotalDeposits',
+    args: parsedSelectedAssetId ? [parsedSelectedAssetId] : undefined,
+    query: { enabled: Boolean(parsedSelectedAssetId) },
+  });
+
+  const { data: liquidity } = useReadContract({
+    address: RECEIVABLE_POOL_ADDRESS,
+    abi: ReceivablePoolAbi,
+    functionName: 'availableLiquidity',
+    args: parsedSelectedAssetId ? [parsedSelectedAssetId] : undefined,
+    query: { enabled: Boolean(parsedSelectedAssetId) },
+  });
+
+  const { data: reservedInterest } = useReadContract({
+    address: RECEIVABLE_POOL_ADDRESS,
+    abi: ReceivablePoolAbi,
+    functionName: 'reservedInterest',
+    args: parsedSelectedAssetId ? [parsedSelectedAssetId] : undefined,
+    query: { enabled: Boolean(parsedSelectedAssetId) },
+  });
+
+  const { data: lpBalance } = useReadContract({
+    address: RECEIVABLE_POOL_ADDRESS,
+    abi: ReceivablePoolAbi,
+    functionName: 'lpBalanceOf',
+    args: parsedSelectedAssetId && address ? [parsedSelectedAssetId, address] : undefined,
+    query: { enabled: Boolean(parsedSelectedAssetId && address) },
+  });
+
+  // 读取链上资产列表
+  useEffect(() => {
+    const fetchAssets = async () => {
+      if (!publicClient || nextAssetId === undefined) return;
+      setLoadingAssets(true);
+      setLoadError(null);
+      try {
+        const total = Number(nextAssetId);
+        if (total === 0) {
+          setAssets([]);
+          return;
+        }
+        const calls = Array.from({ length: total }, (_v, i) => ({
+          address: REGISTRY_ADDRESS,
+          abi: CommodityAssetRegistryAbi,
+          functionName: 'getAsset' as const,
+          args: [BigInt(i)],
+        }));
+        const result = await publicClient.multicall({ allowFailure: true, contracts: calls });
+        const parsed: Asset[] = [];
+        result.forEach((res, idx) => {
+          if (res.status === 'success') {
+            const asset: any = res.result;
+            parsed.push({
+              id: BigInt(idx),
+              name: asset.name,
+              unit: asset.unit,
+              quantity: BigInt(asset.quantity),
+              referenceValue: BigInt(asset.referenceValue),
+              status: Number(asset.status),
+            });
+          }
+        });
+        setAssets(parsed);
+        if (!selectedAssetId && parsed.length > 0) setSelectedAssetId(parsed[0].id.toString());
+      } catch (err: any) {
+        setLoadError(err?.message || '加载资产失败');
+      } finally {
+        setLoadingAssets(false);
+      }
+    };
+    fetchAssets();
+  }, [publicClient, nextAssetId, selectedAssetId]);
+
+  const handleDeposit = () => {
+    if (!parsedSelectedAssetId || !parsedDepositAmount) {
+      alert('请先选择资产并输入存入金额');
+      return;
+    }
+    writeContract({
+      address: RECEIVABLE_POOL_ADDRESS,
+      abi: ReceivablePoolAbi,
+      functionName: 'deposit',
+      args: [parsedSelectedAssetId, parsedDepositAmount],
+    });
   };
 
-  const getColorClasses = (color: string) => {
-    const colors = {
-      green: {
-        bg: 'from-green-50 to-emerald-50',
-        border: 'border-green-200',
-        text: 'text-green-600',
-        iconBg: 'bg-green-100',
-        progress: 'success' as const,
-      },
-      blue: {
-        bg: 'from-blue-50 to-cyan-50',
-        border: 'border-blue-200',
-        text: 'text-blue-600',
-        iconBg: 'bg-blue-100',
-        progress: 'primary' as const,
-      },
-      purple: {
-        bg: 'from-purple-50 to-pink-50',
-        border: 'border-purple-200',
-        text: 'text-purple-600',
-        iconBg: 'bg-purple-100',
-        progress: 'secondary' as const,
-      },
-    };
-    return colors[color as keyof typeof colors] || colors.blue;
+  const handleWithdraw = () => {
+    if (!parsedSelectedAssetId) {
+      alert('请选择资产');
+      return;
+    }
+    writeContract({
+      address: RECEIVABLE_POOL_ADDRESS,
+      abi: ReceivablePoolAbi,
+      functionName: 'withdraw',
+      args: [parsedSelectedAssetId],
+    });
+  };
+
+  const handleUpdateStatus = () => {
+    if (!parsedStatusAssetId) {
+      alert('请填写资产 ID');
+      return;
+    }
+    writeStatus({
+      address: RECEIVABLE_POOL_ADDRESS,
+      abi: ReceivablePoolAbi,
+      functionName: 'updateAssetStatus',
+      args: [parsedStatusAssetId, Number(newStatus)],
+    });
+  };
+
+  const handleMint = () => {
+    if (!mintTo || !parsedMintAmount) {
+      alert('请填写 mint 地址和数量');
+      return;
+    }
+    writeToken({
+      address: MOCK_USDT_ADDRESS,
+      abi: MockUSDTAbi,
+      functionName: 'mint',
+      args: [mintTo, parsedMintAmount],
+    });
+  };
+
+  const handleApprove = () => {
+    if (!approveAmount) {
+      alert('请输入授权金额');
+      return;
+    }
+    writeToken({
+      address: MOCK_USDT_ADDRESS,
+      abi: MockUSDTAbi,
+      functionName: 'approve',
+      args: [RECEIVABLE_POOL_ADDRESS, parsedApproveAmount ?? 0n],
+    });
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* 页面标题 */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-[#FFA500]">
-          Financing Pools
-        </h1>
-        <p className="text-gray-500 mt-2">Participate in financing pools and earn stable returns</p>
-      </div>
-
-      {/* 融资池卡片网格 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {pools.map((pool) => {
-          const colors = getColorClasses(pool.color);
-          const utilizationRate = ((pool.totalValue - pool.available) / pool.totalValue) * 100;
-          const isHighlighted = pool.id === 'POOL001';
-          
-          return (
-            <Card 
-              key={pool.id}
-              className={`bg-[#141414] hover:border-zinc-700 transition-all ${isHighlighted ? 'border-2 border-[#FFA500]' : 'border border-zinc-800'}`}
-            >
-              <CardHeader className="border-b border-zinc-800">
-                <div className="text-center w-full py-4">
-                  <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                    <span className="text-3xl opacity-60">{pool.icon}</span>
-                  </div>
-                  <h2 className="text-lg font-semibold text-gray-300">{pool.name}</h2>
-                  <p className="text-sm text-gray-500 mt-1">Register and manage your commodity</p>
-                </div>
-              </CardHeader>
-              <CardBody className="p-6 space-y-5">
-                {/* 存入按钮 */}
-                <Button
-                  size="lg"
-                  className="w-full bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
-                  onPress={() => handleDeposit(pool.id)}
-                >
-                  Get Started
-                </Button>
-              </CardBody>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* 底部装饰图片 */}
-      <div className="mt-16 flex justify-center">
+    <div className="container mx-auto px-4 py-10">
+      {/* 标题与背景 */}
+      <div className="relative mb-12">
+        <h1 className="text-4xl font-bold text-white">Financing Pools</h1>
+        <p className="text-gray-400 mt-2">
+          真实链上融资池（ReceivablePool） · LP 存取款 · 可用流动性查询
+        </p>
         <Image
-          src="/icon2.png"
-          alt="decoration"
-          width={800}
-          height={800}
-          className="opacity-30 absolute bottom-0 top-[230px] left-0 right-0 mx-auto pointer-events-none select-none"
+          src="/ship.png"
+          alt="bg"
+          width={900}
+          height={500}
+          className="opacity-20 absolute -right-6 -top-24 pointer-events-none select-none"
         />
+      </div>
+
+      {/* 钱包区域 */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        {isConnected ? (
+          <>
+            <Chip className="bg-emerald-400 text-black font-semibold border border-emerald-300/70">
+              已连接：{address}
+            </Chip>
+            <Button
+              size="sm"
+              className="bg-zinc-800 text-gray-200 border border-zinc-700"
+              onPress={() => disconnect()}
+            >
+              断开
+            </Button>
+          </>
+        ) : (
+          connectors.map((c) => (
+            <Button
+              key={c.uid}
+              size="sm"
+              isDisabled={isConnecting}
+              className="bg-zinc-800 text-gray-200 border border-zinc-700"
+              onPress={() => connect({ connector: c })}
+            >
+              连接 {c.name}
+            </Button>
+          ))
+        )}
+      </div>
+
+      {/* 合约信息 */}
+      <div className="flex flex-wrap gap-2 mb-8 text-xs">
+        <Chip className="bg-amber-400 text-black font-semibold border border-amber-300/80">
+          Pool: {RECEIVABLE_POOL_ADDRESS}
+        </Chip>
+        <Chip className="bg-sky-300 text-black font-semibold border border-sky-200/80">
+          Registry: {REGISTRY_ADDRESS}
+        </Chip>
+        <Chip className="bg-purple-300 text-black font-semibold border border-purple-200/80">
+          nextAssetId: {nextAssetId !== undefined ? String(nextAssetId) : '-'}
+        </Chip>
+      </div>
+
+      {/* 主内容 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 左侧：池子卡片 */}
+        <Card className="bg-[#141414]/90 border border-zinc-800 lg:col-span-2">
+          <CardHeader className="border-b border-zinc-800 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-100">池子资产</h2>
+              <p className="text-sm text-gray-500">来自 Registry 的真实资产</p>
+            </div>
+            {loadingAssets && <Spinner size="sm" color="warning" />}
+          </CardHeader>
+          <CardBody className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {loadError && (
+              <div className="md:col-span-3 text-sm text-red-400">加载失败：{loadError}</div>
+            )}
+            {assets.map((asset) => (
+              <div
+                key={asset.id.toString()}
+                className={`rounded-xl border ${
+                  selectedAssetId === asset.id.toString()
+                    ? 'border-amber-400/80'
+                    : 'border-zinc-800'
+                } bg-gradient-to-br from-[#111827] to-[#0b0f1a] p-3 shadow-md transition-all hover:-translate-y-1 hover:border-amber-300/60 aspect-square flex flex-col justify-between cursor-pointer`}
+                onClick={() => setSelectedAssetId(asset.id.toString())}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <Chip size="sm" className="bg-amber-400 text-black font-semibold">
+                      #{asset.id.toString()}
+                    </Chip>
+                    <Chip size="sm" className="bg-transparent border border-zinc-700 text-gray-200">
+                      {statusLabel(asset.status)}
+                    </Chip>
+                  </div>
+                  <h3 className="text-base font-semibold text-white">{asset.name}</h3>
+                  <p className="text-xs text-gray-400">
+                    数量 {asset.quantity.toString()} {asset.unit}
+                  </p>
+                </div>
+                <p className="text-sm text-amber-200 font-semibold">
+                  参考价值 ${formatNum(asset.referenceValue)}
+                </p>
+              </div>
+            ))}
+          </CardBody>
+        </Card>
+
+        {/* 右侧：操作与数据 */}
+        <div className="space-y-4">
+          <Card className="bg-[#141414]/90 border border-zinc-800">
+            <CardHeader className="border-b border-zinc-800">
+              <div>
+                <p className="text-sm text-emerald-300">MockUSDT</p>
+                <h3 className="text-lg font-semibold text-white">Mint & Approve</h3>
+              </div>
+            </CardHeader>
+            <CardBody className="space-y-3">
+              <Input
+                label="mint 接收地址"
+                value={mintTo}
+                onChange={(e) => setMintTo(e.target.value)}
+                classNames={{
+                  inputWrapper: 'bg-black border border-white/15 text-white',
+                  label: 'text-gray-300',
+                  input: 'text-white placeholder:text-gray-500',
+                }}
+              />
+              <Input
+                label="mint 数量（最小单位，6 位小数）"
+                type="number"
+                value={mintAmount}
+                onChange={(e) => setMintAmount(e.target.value)}
+                classNames={{
+                  inputWrapper: 'bg-black border border-white/15 text-white',
+                  label: 'text-gray-300',
+                  input: 'text-white placeholder:text-gray-500',
+                }}
+              />
+              <Button
+                color="primary"
+                onPress={handleMint}
+                isLoading={tokenPending || tokenConfirming}
+                className="bg-emerald-500 text-black font-semibold"
+              >
+                mint
+              </Button>
+
+              <Input
+                label="approve 金额（授权给 Pool）"
+                type="number"
+                value={approveAmount}
+                onChange={(e) => setApproveAmount(e.target.value)}
+                classNames={{
+                  inputWrapper: 'bg-black border border-white/15 text-white',
+                  label: 'text-gray-300',
+                  input: 'text-white placeholder:text-gray-500',
+                }}
+              />
+              <Button
+                variant="bordered"
+                onPress={handleApprove}
+                isLoading={tokenPending || tokenConfirming}
+                className="border-emerald-300 text-emerald-200"
+              >
+                approve Pool
+              </Button>
+
+              {tokenTx && (
+                <p className="text-xs text-gray-400">
+                  tx: {tokenTx.slice(0, 10)}...{tokenTx.slice(-6)}{' '}
+                  {tokenSuccess && <span className="text-emerald-400 ml-1">已确认</span>}
+                </p>
+              )}
+              {tokenError && <p className="text-sm text-red-400">错误：{tokenError.message}</p>}
+            </CardBody>
+          </Card>
+
+          <Card className="bg-[#141414]/90 border border-zinc-800">
+            <CardHeader className="border-b border-zinc-800">
+              <div>
+                <p className="text-sm text-amber-300">LP 存取款</p>
+                <h3 className="text-lg font-semibold text-white">针对选中资产 ID</h3>
+              </div>
+            </CardHeader>
+            <CardBody className="space-y-3">
+              <Select
+                label="资产 ID"
+                placeholder="选择资产"
+                selectedKeys={selectedAssetId ? new Set([selectedAssetId]) : new Set()}
+                onSelectionChange={(keys) => {
+                  const v = Array.from(keys)[0] as string | undefined;
+                  setSelectedAssetId(v ?? '');
+                }}
+                classNames={{
+                  trigger: 'bg-black border border-white/15 text-white',
+                  label: 'text-gray-300',
+                  listbox: 'bg-[#141414] text-white',
+                }}
+              >
+                {assets.map((asset) => (
+                  <SelectItem key={asset.id.toString()} value={asset.id.toString()}>
+                    #{asset.id.toString()} · {asset.name}
+                  </SelectItem>
+                ))}
+              </Select>
+              <Input
+                label="存入金额 (MockUSDT)"
+                type="number"
+                value={depositAmount}
+                onChange={(e) => setDepositAmount(e.target.value)}
+                classNames={{
+                  inputWrapper: 'bg-black border border-white/15 text-white',
+                  label: 'text-gray-300',
+                  input: 'text-white placeholder:text-gray-500',
+                }}
+              />
+              <div className="flex gap-2">
+                <Button
+                  color="primary"
+                  onPress={handleDeposit}
+                  isLoading={isPending || confirming}
+                  className="bg-amber-500 text-black font-semibold shadow-lg shadow-amber-500/20"
+                >
+                  deposit
+                </Button>
+                <Button
+                  variant="bordered"
+                  onPress={handleWithdraw}
+                  isLoading={isPending || confirming}
+                  className="border-amber-300 text-amber-200"
+                >
+                  withdraw
+                </Button>
+              </div>
+              {txHash && (
+                <p className="text-xs text-gray-400">
+                  tx: {txHash.slice(0, 10)}...{txHash.slice(-6)}{' '}
+                  {success && <span className="text-emerald-400 ml-1">已确认</span>}
+                </p>
+              )}
+              {writeError && <p className="text-sm text-red-400">错误：{writeError.message}</p>}
+            </CardBody>
+          </Card>
+
+          <Card className="bg-[#141414]/90 border border-zinc-800">
+            <CardHeader className="border-b border-zinc-800">
+              <div>
+                <p className="text-sm text-sky-300">池子数据</p>
+                <h3 className="text-lg font-semibold text-white">实时流动性</h3>
+              </div>
+            </CardHeader>
+            <CardBody className="space-y-2 text-sm text-gray-300">
+              <p>当前资产 ID：{selectedAssetId || '-'}</p>
+              <p>poolTotalDeposits：{formatNum(poolDeposits as bigint)}</p>
+              <p>availableLiquidity：{formatNum(liquidity as bigint)}</p>
+              <p>reservedInterest：{formatNum(reservedInterest as bigint)}</p>
+              <p>我的 LP 余额：{formatNum(lpBalance as bigint)}</p>
+              <p className="text-xs text-gray-500">
+                提示：deposit 前需先在 MockUSDT approve 给 Pool 地址；drawdown 需要足够可用流动性。
+              </p>
+            </CardBody>
+          </Card>
+
+          <Card className="bg-[#141414]/90 border border-zinc-800">
+            <CardHeader className="border-b border-zinc-800">
+              <div>
+                <p className="text-sm text-amber-300">资产状态（Pool.updateAssetStatus）</p>
+                <h3 className="text-lg font-semibold text-white">设置资产状态</h3>
+              </div>
+            </CardHeader>
+            <CardBody className="space-y-3">
+              <Input
+                label="资产 ID（Pool owner 才能成功）"
+                value={statusAssetId}
+                onChange={(e) => setStatusAssetId(e.target.value)}
+                classNames={{
+                  inputWrapper: 'bg-black border border-white/15 text-white',
+                  label: 'text-gray-300',
+                  input: 'text-white placeholder:text-gray-500',
+                }}
+              />
+              <Select
+                label="状态"
+                placeholder="选择资产状态"
+                selectedKeys={newStatus ? new Set([newStatus]) : new Set()}
+                onSelectionChange={(keys) => {
+                  const v = Array.from(keys)[0] as string | undefined;
+                  setNewStatus(v ?? '1');
+                }}
+                classNames={{
+                  trigger: 'bg-black border border-white/15 text-white',
+                  label: 'text-gray-300',
+                  listbox: 'bg-[#141414] text-white',
+                }}
+              >
+                <SelectItem key="0" value="0">
+                  0 - Pending
+                </SelectItem>
+                <SelectItem key="1" value="1">
+                  1 - Active
+                </SelectItem>
+                <SelectItem key="2" value="2">
+                  2 - Cleared
+                </SelectItem>
+                <SelectItem key="3" value="3">
+                  3 - Defaulted
+                </SelectItem>
+              </Select>
+              <Button
+                color="primary"
+                onPress={handleUpdateStatus}
+                isLoading={statusPending || statusConfirming}
+                className="bg-amber-500 text-black font-semibold shadow-lg shadow-amber-500/20"
+              >
+                更新状态
+              </Button>
+              {statusTx && (
+                <p className="text-xs text-gray-400">
+                  tx: {statusTx.slice(0, 10)}...{statusTx.slice(-6)}{' '}
+                  {statusSuccess && <span className="text-emerald-400 ml-1">已确认</span>}
+                </p>
+              )}
+              {statusError && <p className="text-sm text-red-400">错误：{statusError.message}</p>}
+              <p className="text-xs text-gray-500">
+                需 Pool owner 钱包签名；设置为 Active/InTransit 后才能创建 deal 并 drawdown。
+              </p>
+            </CardBody>
+          </Card>
+        </div>
       </div>
     </div>
   );
