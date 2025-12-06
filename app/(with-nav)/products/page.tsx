@@ -161,7 +161,7 @@ export default function ProductsPage() {
         });
         setAssets(parsed);
       } catch (err: any) {
-        setLoadError(err?.message || '加载失败');
+        setLoadError(err?.message || 'Loading failed');
       } finally {
         setIsLoadingAssets(false);
       }
@@ -171,7 +171,7 @@ export default function ProductsPage() {
 
   const handleRegister = () => {
     if (!formIssuer || !formName || !parsedQuantity || !parsedRefValue || !formUnit) {
-      alert('请先把必填字段填好');
+      alert('Please fill in all required fields');
       return;
     }
     writeRegister({
@@ -214,18 +214,18 @@ export default function ProductsPage() {
         <div className="flex flex-wrap items-center justify-between gap-4 mb-12">
           <div>
             <h1 className="text-4xl font-bold text-[#FFA500] mb-2">On-chain Assets</h1>
-            <p className="text-gray-500">直接读取 Registry / Pool 的真实资产数据</p>
+            <p className="text-gray-500">Read real asset data directly from Registry / Pool</p>
           </div>
           {isConnected ? (
             <div className="flex items-center gap-3">
               <div className="text-sm text-gray-400">
-                <p>地址：{address}</p>
+                <p>Address: {address}</p>
               </div>
               <Button
                 onPress={() => disconnect()}
                 className="bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
               >
-                断开
+                Disconnect
               </Button>
             </div>
           ) : (
@@ -261,13 +261,13 @@ export default function ProductsPage() {
 
         <div className="mb-6 flex items-center justify-between">
           <div className="text-gray-400 text-sm">
-            资产列表来自链上：Registry.getAsset(0..nextAssetId-1)
+            Asset list from on-chain: Registry.getAsset(0..nextAssetId-1)
           </div>
           <Button
             onPress={onOpen}
             className="bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
           >
-            注册新资产（Pool owner）
+            Register New Asset (Pool owner)
           </Button>
         </div>
 
@@ -277,7 +277,7 @@ export default function ProductsPage() {
             {isLoadingAssets && <Spinner size="sm" color="warning" />}
           </CardHeader>
           <CardBody className="p-6">
-            {loadError && <p className="text-red-400 mb-3 text-sm">加载失败：{loadError}</p>}
+            {loadError && <p className="text-red-400 mb-3 text-sm">Loading failed: {loadError}</p>}
             <Table
               aria-label="asset list"
               selectionMode="single"
@@ -301,7 +301,7 @@ export default function ProductsPage() {
               </TableHeader>
               <TableBody
                 emptyContent={
-                  isLoadingAssets ? '加载中...' : '暂无链上资产'
+                  isLoadingAssets ? 'Loading...' : 'No on-chain assets'
                 }
               >
                 {assets.map((asset) => (
@@ -328,7 +328,7 @@ export default function ProductsPage() {
             </Table>
             {selectedRows.size > 0 && (
               <p className="mt-3 text-xs text-gray-400">
-                已选资产 ID：{Array.from(selectedRows).join(', ')}
+                Selected Asset ID: {Array.from(selectedRows).join(', ')}
               </p>
             )}
           </CardBody>
@@ -338,12 +338,12 @@ export default function ProductsPage() {
       <Modal isOpen={isOpen} onClose={onClose} size="2xl" className="bg-[#141414] border border-zinc-800">
         <ModalContent>
           <ModalHeader className="border-b border-zinc-800 text-gray-300">
-            注册新资产（Pool.registerAsset）
+            Register New Asset (Pool.registerAsset)
           </ModalHeader>
           <ModalBody className="py-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Input
-                label="发行人 issuer"
+                label="Issuer"
                 value={formIssuer}
                 onChange={(e) => setFormIssuer(e.target.value)}
                 classNames={{
@@ -353,7 +353,7 @@ export default function ProductsPage() {
                 }}
               />
               <Input
-                label="名称 name"
+                label="Name"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 classNames={{
@@ -396,7 +396,7 @@ export default function ProductsPage() {
                 }}
               />
               <Input
-                label="参考价值 / Price (uint256)"
+                label="Reference Value / Price (uint256)"
                 type="number"
                 value={formRefValue}
                 onChange={(e) => setFormRefValue(e.target.value)}
@@ -408,8 +408,8 @@ export default function ProductsPage() {
               />
             </div>
             <Select
-              label="状态 status"
-              placeholder="选择资产状态"
+              label="Status"
+              placeholder="Select asset status"
               selectedKeys={new Set([formStatus])}
               onSelectionChange={(keys) => {
                 const v = Array.from(keys)[0] as string;
@@ -428,26 +428,26 @@ export default function ProductsPage() {
               ))}
             </Select>
             {registerError && (
-              <p className="text-sm text-red-400">错误：{registerError.message}</p>
+              <p className="text-sm text-red-400">Error: {registerError.message}</p>
             )}
           </ModalBody>
           <ModalFooter className="border-t border-zinc-800">
             <Button variant="light" onPress={onClose} className="text-gray-500">
-              取消
+              Cancel
             </Button>
             <Button
               onPress={handleRegister}
               isLoading={registering || registerConfirming}
               className="bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
             >
-              提交
+              Submit
             </Button>
             {registerHash && (
               <span className="text-xs text-gray-400">
                 tx: {registerHash.slice(0, 10)}...{registerHash.slice(-6)}
               </span>
             )}
-            {registerSuccess && <span className="text-xs text-emerald-400">已上链</span>}
+            {registerSuccess && <span className="text-xs text-emerald-400">On-chain</span>}
           </ModalFooter>
         </ModalContent>
       </Modal>

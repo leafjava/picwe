@@ -176,7 +176,7 @@ export default function PoolsPage() {
         setAssets(parsed);
         if (!selectedAssetId && parsed.length > 0) setSelectedAssetId(parsed[0].id.toString());
       } catch (err: any) {
-        setLoadError(err?.message || '加载资产失败');
+        setLoadError(err?.message || 'Failed to load assets');
       } finally {
         setLoadingAssets(false);
       }
@@ -186,7 +186,7 @@ export default function PoolsPage() {
 
   const handleDeposit = () => {
     if (!parsedSelectedAssetId || !parsedDepositAmount) {
-      alert('请先选择资产并输入存入金额');
+      alert('Please select asset and enter deposit amount');
       return;
     }
     writeContract({
@@ -199,7 +199,7 @@ export default function PoolsPage() {
 
   const handleWithdraw = () => {
     if (!parsedSelectedAssetId) {
-      alert('请选择资产');
+      alert('Please select asset');
       return;
     }
     writeContract({
@@ -212,7 +212,7 @@ export default function PoolsPage() {
 
   const handleUpdateStatus = () => {
     if (!parsedStatusAssetId) {
-      alert('请填写资产 ID');
+      alert('Please fill in asset ID');
       return;
     }
     writeStatus({
@@ -225,7 +225,7 @@ export default function PoolsPage() {
 
   const handleMint = () => {
     if (!mintTo || !parsedMintAmount) {
-      alert('请填写 mint 地址和数量');
+      alert('Please fill in mint address and amount');
       return;
     }
     writeToken({
@@ -238,7 +238,7 @@ export default function PoolsPage() {
 
   const handleApprove = () => {
     if (!approveAmount) {
-      alert('请输入授权金额');
+      alert('Please enter approval amount');
       return;
     }
     writeToken({
@@ -255,7 +255,7 @@ export default function PoolsPage() {
       <div className="relative mb-12">
         <h1 className="text-4xl font-bold text-white">Financing Pools</h1>
         <p className="text-gray-400 mt-2">
-          真实链上融资池（ReceivablePool） · LP 存取款 · 可用流动性查询
+          Real on-chain financing pool (ReceivablePool) · LP deposit/withdrawal · Available liquidity query
         </p>
         <Image
           src="/ship.png"
@@ -271,14 +271,14 @@ export default function PoolsPage() {
         {isConnected ? (
           <>
             <Chip className="bg-emerald-400 text-black font-semibold border border-emerald-300/70">
-              已连接：{address}
+              Connected: {address}
             </Chip>
             <Button
               size="sm"
               className="bg-zinc-800 text-gray-200 border border-zinc-700"
               onPress={() => disconnect()}
             >
-              断开
+              Disconnect
             </Button>
           </>
         ) : (
@@ -290,7 +290,7 @@ export default function PoolsPage() {
               className="bg-zinc-800 text-gray-200 border border-zinc-700"
               onPress={() => connect({ connector: c })}
             >
-              连接 {c.name}
+              Connect {c.name}
             </Button>
           ))
         )}
@@ -315,14 +315,14 @@ export default function PoolsPage() {
         <Card className="bg-[#141414]/90 border border-zinc-800 lg:col-span-2">
           <CardHeader className="border-b border-zinc-800 flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-semibold text-gray-100">池子资产</h2>
-              <p className="text-sm text-gray-500">来自 Registry 的真实资产</p>
+              <h2 className="text-2xl font-semibold text-gray-100">Pool Assets</h2>
+              <p className="text-sm text-gray-500">Real assets from the Registry</p>
             </div>
             {loadingAssets && <Spinner size="sm" color="warning" />}
           </CardHeader>
           <CardBody className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
             {loadError && (
-              <div className="md:col-span-3 text-sm text-red-400">加载失败：{loadError}</div>
+              <div className="md:col-span-3 text-sm text-red-400">Loading failed: {loadError}</div>
             )}
             {assets.map((asset) => (
               <div
@@ -345,11 +345,11 @@ export default function PoolsPage() {
                   </div>
                   <h3 className="text-base font-semibold text-white">{asset.name}</h3>
                   <p className="text-xs text-gray-400">
-                    数量 {asset.quantity.toString()} {asset.unit}
+                    Qty {asset.quantity.toString()} {asset.unit}
                   </p>
                 </div>
                 <p className="text-sm text-amber-200 font-semibold">
-                  参考价值 ${formatNum(asset.referenceValue)}
+                  Ref Value ${formatNum(asset.referenceValue)}
                 </p>
               </div>
             ))}
@@ -367,7 +367,7 @@ export default function PoolsPage() {
             </CardHeader>
             <CardBody className="space-y-3">
               <Input
-                label="mint 接收地址"
+                label="Mint Recipient Address"
                 value={mintTo}
                 onChange={(e) => setMintTo(e.target.value)}
                 classNames={{
@@ -377,7 +377,7 @@ export default function PoolsPage() {
                 }}
               />
               <Input
-                label="mint 数量（最小单位，6 位小数）"
+                label="Mint Amount (smallest unit, 6 decimals)"
                 type="number"
                 value={mintAmount}
                 onChange={(e) => setMintAmount(e.target.value)}
@@ -397,7 +397,7 @@ export default function PoolsPage() {
               </Button>
 
               <Input
-                label="approve 金额（授权给 Pool）"
+                label="Approve Amount (authorize to Pool)"
                 type="number"
                 value={approveAmount}
                 onChange={(e) => setApproveAmount(e.target.value)}
@@ -429,8 +429,8 @@ export default function PoolsPage() {
           <Card className="bg-[#141414]/90 border border-zinc-800">
             <CardHeader className="border-b border-zinc-800">
               <div>
-                <p className="text-sm text-amber-300">LP 存取款</p>
-                <h3 className="text-lg font-semibold text-white">针对选中资产 ID</h3>
+                <p className="text-sm text-amber-300">LP Deposit & Withdraw</p>
+                <h3 className="text-lg font-semibold text-white">For Selected Asset ID</h3>
               </div>
             </CardHeader>
             <CardBody className="space-y-3">
@@ -455,7 +455,7 @@ export default function PoolsPage() {
                 ))}
               </Select>
               <Input
-                label="存入金额 (MockUSDT)"
+                label="Deposit Amount (MockUSDT)"
                 type="number"
                 value={depositAmount}
                 onChange={(e) => setDepositAmount(e.target.value)}
@@ -496,18 +496,18 @@ export default function PoolsPage() {
           <Card className="bg-[#141414]/90 border border-zinc-800">
             <CardHeader className="border-b border-zinc-800">
               <div>
-                <p className="text-sm text-sky-300">池子数据</p>
-                <h3 className="text-lg font-semibold text-white">实时流动性</h3>
+                <p className="text-sm text-sky-300">Pool Data</p>
+                <h3 className="text-lg font-semibold text-white">Real-Time Liquidity</h3>
               </div>
             </CardHeader>
             <CardBody className="space-y-2 text-sm text-gray-300">
-              <p>当前资产 ID：{selectedAssetId || '-'}</p>
-              <p>poolTotalDeposits：{formatNum(poolDeposits as bigint)}</p>
-              <p>availableLiquidity：{formatNum(liquidity as bigint)}</p>
-              <p>reservedInterest：{formatNum(reservedInterest as bigint)}</p>
-              <p>我的 LP 余额：{formatNum(lpBalance as bigint)}</p>
+              <p>Current Asset ID: {selectedAssetId || '-'}</p>
+              <p>poolTotalDeposits: {formatNum(poolDeposits as bigint)}</p>
+              <p>availableLiquidity: {formatNum(liquidity as bigint)}</p>
+              <p>reservedInterest: {formatNum(reservedInterest as bigint)}</p>
+              <p>My LP Balance: {formatNum(lpBalance as bigint)}</p>
               <p className="text-xs text-gray-500">
-                提示：deposit 前需先在 MockUSDT approve 给 Pool 地址；drawdown 需要足够可用流动性。
+                Note: Before deposit, need to approve MockUSDT to Pool address; drawdown requires sufficient available liquidity.
               </p>
             </CardBody>
           </Card>
@@ -515,13 +515,13 @@ export default function PoolsPage() {
           <Card className="bg-[#141414]/90 border border-zinc-800">
             <CardHeader className="border-b border-zinc-800">
               <div>
-                <p className="text-sm text-amber-300">资产状态（Pool.updateAssetStatus）</p>
-                <h3 className="text-lg font-semibold text-white">设置资产状态</h3>
+                <p className="text-sm text-amber-300">Asset Status (Pool.updateAssetStatus)</p>
+                <h3 className="text-lg font-semibold text-white">Set Asset Status</h3>
               </div>
             </CardHeader>
             <CardBody className="space-y-3">
               <Input
-                label="资产 ID（Pool owner 才能成功）"
+                label="Asset ID (Pool owner only)"
                 value={statusAssetId}
                 onChange={(e) => setStatusAssetId(e.target.value)}
                 classNames={{
@@ -531,8 +531,8 @@ export default function PoolsPage() {
                 }}
               />
               <Select
-                label="状态"
-                placeholder="选择资产状态"
+                label="Status"
+                placeholder="Select Asset Status"
                 selectedKeys={newStatus ? new Set([newStatus]) : new Set()}
                 onSelectionChange={(keys) => {
                   const v = Array.from(keys)[0] as string | undefined;
@@ -563,17 +563,17 @@ export default function PoolsPage() {
                 isLoading={statusPending || statusConfirming}
                 className="bg-amber-500 text-black font-semibold shadow-lg shadow-amber-500/20"
               >
-                更新状态
+                Update Status
               </Button>
               {statusTx && (
                 <p className="text-xs text-gray-400">
                   tx: {statusTx.slice(0, 10)}...{statusTx.slice(-6)}{' '}
-                  {statusSuccess && <span className="text-emerald-400 ml-1">已确认</span>}
+                  {statusSuccess && <span className="text-emerald-400 ml-1">Confirmed</span>}
                 </p>
               )}
-              {statusError && <p className="text-sm text-red-400">错误：{statusError.message}</p>}
+              {statusError && <p className="text-sm text-red-400">Error: {statusError.message}</p>}
               <p className="text-xs text-gray-500">
-                需 Pool owner 钱包签名；设置为 Active/InTransit 后才能创建 deal 并 drawdown。
+                Requires Pool owner wallet signature; can only create deal and drawdown after setting to Active/InTransit.
               </p>
             </CardBody>
           </Card>

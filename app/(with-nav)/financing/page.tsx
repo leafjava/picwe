@@ -177,7 +177,7 @@ export default function FinancingPage() {
           setSelectedAssetId(parsed[0].id.toString());
         }
       } catch (err: any) {
-        setLoadError(err?.message || '加载失败');
+        setLoadError(err?.message || 'Loading failed');
       } finally {
         setLoadingAssets(false);
       }
@@ -187,7 +187,7 @@ export default function FinancingPage() {
 
   const handleCreateDeal = () => {
     if (!parsedAssetId || !borrower || !payer) {
-      alert('请选择资产并填写 borrower / payer');
+      alert('Please select asset and fill in borrower / payer');
       return;
     }
     writeContract({
@@ -200,7 +200,7 @@ export default function FinancingPage() {
 
   const handleDrawdown = () => {
     if (!parsedDealId || !drawdownAmount) {
-      alert('请填写 dealId 和 提取金额');
+      alert('Please fill in dealId and withdrawal amount');
       return;
     }
     writeContract({
@@ -225,18 +225,18 @@ export default function FinancingPage() {
         <div className="flex flex-wrap justify-between items-start gap-4 mb-10">
           <div>
             <h1 className="text-4xl font-bold text-white mb-2">Financing Application</h1>
-            <p className="text-gray-400">基于真实链上资产和融资池，提交融资申请</p>
+            <p className="text-gray-400">Submit financing applications based on real on-chain assets and financing pools</p>
           </div>
           {isConnected ? (
             <div className="flex items-center gap-3">
               <div className="text-sm text-gray-300">
-                <p>地址：{address}</p>
+                <p>Address: {address}</p>
               </div>
               <Button
                 onPress={() => disconnect()}
                 className="bg-zinc-800 hover:bg-zinc-700 text-gray-200 border border-zinc-700"
               >
-                断开
+                Disconnect
               </Button>
             </div>
           ) : (
@@ -248,7 +248,7 @@ export default function FinancingPage() {
                   isDisabled={isConnecting}
                   className="bg-zinc-800 hover:bg-zinc-700 text-gray-200 border border-zinc-700"
                 >
-                  连接 {connector.name}
+                  Connect {connector.name}
                 </Button>
               ))}
             </div>
@@ -271,15 +271,15 @@ export default function FinancingPage() {
           </Chip>
         </div>
         <div className="mb-8 rounded-xl border border-amber-300/40 bg-amber-500/10 text-amber-50 p-4 text-sm">
-          <p className="font-semibold mb-1">正确流程指引：</p>
+          <p className="font-semibold mb-1">Correct Process Guide:</p>
           <ol className="list-decimal list-inside space-y-1 text-amber-100">
-            <li>确认资产状态：需要先把 Registry 资产设为可融资状态（通常是 Active/InTransit），可用 Pool.updateAssetStatus（在 Products 页或脚本）修改。</li>
-            <li>创建融资交易必须用 <span className="font-semibold">Pool owner 钱包</span> 签名，否则钱包会拒绝/合约会失败。</li>
-            <li>选择已登记的资产 → 填写 borrower / payer → 点击“创建融资交易”，记住返回的 dealId（通常是 nextDealId-1）。</li>
-            <li>LP 先用 MockUSDT 对 Pool 做 approve + deposit，充值到对应 assetId。</li>
-            <li>有流动性后，借款人填入 dealId 和金额，执行 drawdown；偿还用 repay。</li>
+            <li>Confirm asset status: Set Registry asset to financeable status (usually Active/InTransit), can be modified using Pool.updateAssetStatus (on Products page or script).</li>
+            <li>Creating financing deal must be signed with <span className="font-semibold">Pool owner wallet</span>, otherwise wallet will reject/contract will fail.</li>
+            <li>Select a registered asset → fill in borrower / payer → click “Create Financing Transaction” and note the returned dealId (usually nextDealId - 1).</li>
+            <li>LP first approve + deposit MockUSDT to Pool, deposit to corresponding assetId.</li>
+            <li>After liquidity is available, borrower fills in dealId and amount, execute drawdown; repay for repayment.</li>
           </ol>
-          <p className="mt-2 text-amber-200">如果在签名阶段弹出 “User rejected request”，请切换到 Pool owner 账户或确认钱包权限。</p>
+          <p className="mt-2 text-amber-200">If "User rejected request" pops up during signing, please switch to Pool owner account or check wallet permissions.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -288,14 +288,14 @@ export default function FinancingPage() {
             <CardHeader className="border-b border-white/5">
               <div>
                 <p className="text-sm text-amber-300">Pool.createFinancingDeal</p>
-                <h2 className="text-2xl font-semibold text-white">提交融资申请</h2>
+                <h2 className="text-2xl font-semibold text-white">Submit Financing Application</h2>
               </div>
             </CardHeader>
             <CardBody className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <Select
-                  label="选择资产"
-                  placeholder="从链上已登记资产选择"
+                  label="Select Asset"
+                  placeholder="Choose from registered on-chain assets"
                   selectedKeys={selectedAssetId ? new Set([selectedAssetId]) : new Set()}
                   onSelectionChange={(keys) => {
                     const v = Array.from(keys)[0] as string | undefined;
@@ -319,16 +319,16 @@ export default function FinancingPage() {
                     <div className="space-y-1">
                       <p className="text-white font-semibold">{selectedAsset.name}</p>
                       <p className="text-gray-400">
-                        数量 {selectedAsset.quantity.toString()} {selectedAsset.unit} · 参考价值 $
+                        Qty {selectedAsset.quantity.toString()} {selectedAsset.unit} · Ref Value $
                         {formatPrice(selectedAsset.referenceValue)}
                       </p>
-                      <p className="text-gray-500 text-xs break-all">发行人 {selectedAsset.issuer}</p>
+                      <p className="text-gray-500 text-xs break-all">Issuer {selectedAsset.issuer}</p>
                       <Chip size="sm" className="bg-transparent border border-zinc-700 text-gray-200 mt-1">
                         {statusLabel(selectedAsset.status)}
                       </Chip>
                     </div>
                   ) : (
-                    <p className="text-gray-500">请先选择资产</p>
+                    <p className="text-gray-500">Please select an asset first</p>
                   )}
                 </div>
               </div>
@@ -360,7 +360,7 @@ export default function FinancingPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <Input
-                  label="利率 (bps)"
+                  label="Interest Rate (bps)"
                   type="number"
                   value={interestRateBps}
                   onChange={(e) => setInterestRateBps(e.target.value)}
@@ -372,7 +372,7 @@ export default function FinancingPage() {
                   }}
                 />
                 <Input
-                  label="期限 (days)"
+                  label="Tenor (days)"
                   type="number"
                   value={tenorDays}
                   onChange={(e) => setTenorDays(e.target.value)}
@@ -384,7 +384,7 @@ export default function FinancingPage() {
                   }}
                 />
                 <Input
-                  label="drawdown 金额 (可选，用于下方提取)"
+                  label="Drawdown Amount (optional, for withdrawal below)"
                   type="number"
                   value={drawdownAmount}
                   onChange={(e) => setDrawdownAmount(e.target.value)}
@@ -404,17 +404,17 @@ export default function FinancingPage() {
                   isLoading={isPending || confirming}
                   className="bg-amber-500 text-black font-semibold shadow-lg shadow-amber-500/20"
                 >
-                  创建融资交易（Pool owner）
+                  Create Financing Deal (Pool owner)
                 </Button>
                 <div className="text-sm text-gray-400">
                   <p>nextDealId: {nextDealId !== undefined ? String(nextDealId) : '-'}</p>
-                  <p>提示：需要 Pool owner 钱包才能创建 deal。</p>
+                  <p>Note: Pool owner wallet required to create deal.</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <Input
-                  label="dealId (用于 drawdown / repay)"
+                  label="dealId (for drawdown / repay)"
                   value={drawdownDealId}
                   onChange={(e) => setDrawdownDealId(e.target.value)}
                   classNames={{
@@ -458,7 +458,7 @@ export default function FinancingPage() {
                   {success && <span className="text-emerald-400 ml-2">已确认</span>}
                 </p>
               )}
-              {writeError && <p className="text-sm text-red-400">错误：{writeError.message}</p>}
+              {writeError && <p className="text-sm text-red-400">Error: {writeError.message}</p>}
             </CardBody>
           </Card>
 
@@ -467,28 +467,28 @@ export default function FinancingPage() {
             <Card className="bg-[#0f172a]/80 border border-white/10 backdrop-blur-lg">
               <CardHeader className="border-b border-white/5">
                 <div>
-                  <p className="text-sm text-sky-300">Pool 状态</p>
-                  <h3 className="text-lg font-semibold text-white">可用流动性</h3>
+                  <p className="text-sm text-sky-300">Pool Status</p>
+                  <h3 className="text-lg font-semibold text-white">Available Liquidity</h3>
                 </div>
               </CardHeader>
               <CardBody className="text-sm text-gray-300 space-y-2">
-                <p>当前资产 ID：{selectedAssetId || '-'}</p>
-                <p>poolTotalDeposits：{poolDeposits !== undefined ? String(poolDeposits) : '-'}</p>
-                <p>availableLiquidity：{liquidity !== undefined ? String(liquidity) : '-'}</p>
-                <p>reservedInterest：{reservedInterest !== undefined ? String(reservedInterest) : '-'}</p>
-                <p className="text-xs text-gray-500">提示：需要 LP 先 deposit 之后才能 drawdown。</p>
+                <p>Current Asset ID: {selectedAssetId || '-'}</p>
+                <p>poolTotalDeposits: {poolDeposits !== undefined ? String(poolDeposits) : '-'}</p>
+                <p>availableLiquidity: {liquidity !== undefined ? String(liquidity) : '-'}</p>
+                <p>reservedInterest: {reservedInterest !== undefined ? String(reservedInterest) : '-'}</p>
+                <p className="text-xs text-gray-500">Note: LP must deposit before drawdown.</p>
               </CardBody>
             </Card>
 
             <Card className="bg-[#0f172a]/80 border border-white/10 backdrop-blur-lg">
               <CardHeader className="border-b border-white/5">
                 <div>
-                  <p className="text-sm text-emerald-300">链上资产列表</p>
+                  <p className="text-sm text-emerald-300">On-Chain Asset List</p>
                   <h3 className="text-lg font-semibold text-white">Registry Assets</h3>
                 </div>
               </CardHeader>
               <CardBody>
-                {loadError && <p className="text-red-400 mb-2 text-sm">加载失败：{loadError}</p>}
+                {loadError && <p className="text-red-400 mb-2 text-sm">Load failed: {loadError}</p>}
                 <div className="max-h-72 overflow-auto border border-white/5 rounded-lg">
                   <Table
                     removeWrapper
