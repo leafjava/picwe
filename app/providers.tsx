@@ -23,7 +23,7 @@ declare module "@react-types/shared" {
   }
 }
 
-export function Providers({ children, themeProps }: ProvidersProps) {
+export function Providers({ children, themeProps = {} }: ProvidersProps) {
   const router = useRouter();
   const [queryClient] = React.useState(() => new QueryClient());
 
@@ -31,7 +31,13 @@ export function Providers({ children, themeProps }: ProvidersProps) {
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <HeroUIProvider navigate={router.push}>
-          <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
+          <NextThemesProvider 
+            attribute={themeProps.attribute || "class"}
+            defaultTheme={themeProps.defaultTheme || "dark"}
+            enableSystem={themeProps.enableSystem ?? false}
+          >
+            {children}
+          </NextThemesProvider>
         </HeroUIProvider>
       </QueryClientProvider>
     </WagmiProvider>

@@ -42,7 +42,7 @@ export default function RootLayout({
         )}
         suppressHydrationWarning
       >
-        <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
+        <Providers themeProps={{ attribute: "class", defaultTheme: "dark", enableSystem: false }}>
           {children}
         </Providers>
       </body>
