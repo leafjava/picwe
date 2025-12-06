@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
@@ -142,6 +143,17 @@ export default function PoolsPage() {
             </Card>
           );
         })}
+      </div>
+
+      {/* 底部装饰图片 */}
+      <div className="mt-16 flex justify-center">
+        <Image
+          src="/icon2.png"
+          alt="decoration"
+          width={800}
+          height={800}
+          className="opacity-30 absolute bottom-0 top-[230px] left-0 right-0 mx-auto pointer-events-none select-none"
+        />
       </div>
     </div>
   );

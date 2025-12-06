@@ -5,6 +5,7 @@ import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Button } from '@heroui/button';
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
 import { Chip } from '@heroui/chip';
+import Image from 'next/image';
 
 /**
  * 支付记录数据接口
@@ -118,6 +119,17 @@ export default function SettlementPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* 背景图片 */}
+      <div className="fixed inset-0 z-0">
+        <Image
+          src="/background.png"
+          alt="background"
+          fill
+          className="object-cover opacity-30"
+          priority
+        />
+      </div>
+
       {/* 页面标题 */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-[#FFA500]">

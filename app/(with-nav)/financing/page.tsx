@@ -5,6 +5,7 @@ import { Card, CardBody, CardHeader } from '@heroui/card';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
 import { Select, SelectItem } from '@heroui/select';
+import Image from 'next/image';
 
 /**
  * 融资申请页面
@@ -47,6 +48,17 @@ export default function FinancingPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="fixed inset-0 z-0">
+        <Image
+          src="/ship.png"
+          alt="ship"
+          fill
+          className="object-cover opacity-30"
+          priority
+        />
+      </div>
+
+
       {/* 页面标题 */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-[#FFA500]">
