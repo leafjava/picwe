@@ -25,78 +25,68 @@ export default function AnalyticsPage() {
     <div className="container mx-auto px-4 py-8">
       {/* 页面标题 */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold text-[#FFA500]">
           Data Analytics & Commission
         </h1>
-        <p className="text-gray-600 mt-2">Track your revenue and commission performance</p>
+        <p className="text-gray-500 mt-2">Track your revenue and commission performance</p>
       </div>
 
       {/* 统计数据卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* 总收入卡片 */}
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 backdrop-blur-md bg-white/80">
+        <Card className="bg-[#141414] border border-zinc-800 hover:border-[#FFA500] transition-colors">
           <CardBody className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">💰</span>
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                <span className="text-3xl opacity-60">🔒</span>
               </div>
+              <p className="text-lg font-semibold text-gray-300 mb-2">Product Management</p>
+              <p className="text-sm text-gray-500">Register and manage your commodity</p>
             </div>
-            <p className="text-4xl font-bold text-green-600 mb-1">
-              ${totalRevenue.toLocaleString()}
-            </p>
-            <p className="text-xs text-green-600">+12.5% from last month</p>
           </CardBody>
         </Card>
 
-        {/* 总分润卡片 */}
-        <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200 backdrop-blur-md bg-white/80">
+        <Card className="bg-[#141414] border-2 border-[#FFA500] hover:border-[#FFB800] transition-colors">
           <CardBody className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-gray-600">Total Commission</p>
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">💎</span>
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                <span className="text-3xl opacity-80">🔒</span>
               </div>
+              <p className="text-lg font-semibold text-gray-300 mb-2">Product Management</p>
+              <p className="text-sm text-gray-500">Register and manage your commodity</p>
             </div>
-            <p className="text-4xl font-bold text-blue-600 mb-1">
-              ${totalCommission.toLocaleString()}
-            </p>
-            <p className="text-xs text-blue-600">+8.3% from last month</p>
           </CardBody>
         </Card>
 
-        {/* 分润比例卡片 */}
-        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200 backdrop-blur-md bg-white/80">
+        <Card className="bg-[#141414] border border-zinc-800 hover:border-[#FFA500] transition-colors">
           <CardBody className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-gray-600">Commission Rate</p>
-              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">📊</span>
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                <span className="text-3xl opacity-60">🔒</span>
               </div>
+              <p className="text-lg font-semibold text-gray-300 mb-2">Product Management</p>
+              <p className="text-sm text-gray-500">Register and manage your commodity</p>
             </div>
-            <p className="text-4xl font-bold text-purple-600 mb-1">5%</p>
-            <p className="text-xs text-purple-600">Standard rate</p>
           </CardBody>
         </Card>
       </div>
 
       {/* 收入与分润记录表格 */}
-      <Card className="backdrop-blur-md bg-white/80 shadow-xl">
-        <CardHeader className="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+      <Card className="bg-[#141414] border border-zinc-800">
+        <CardHeader className="border-b border-zinc-800">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-              <span className="text-white text-lg">📈</span>
+            <div className="w-8 h-8 flex items-center justify-center">
+              <span className="text-lg opacity-60">🔒</span>
             </div>
-            <h2 className="text-xl font-semibold text-gray-800">Revenue & Commission Records</h2>
+            <h2 className="text-xl font-semibold text-gray-300">Revenue & Commission Records</h2>
           </div>
         </CardHeader>
         <CardBody className="p-6">
           <Table 
             aria-label="Revenue and commission table"
             classNames={{
-              wrapper: "shadow-none",
-              th: "bg-gray-100 text-gray-700 font-semibold",
-              td: "text-gray-700",
+              wrapper: "shadow-none bg-transparent",
+              th: "bg-transparent text-gray-500 font-medium text-xs uppercase",
+              td: "text-gray-400 border-b border-zinc-800/50",
             }}
           >
             <TableHeader>
@@ -107,22 +97,22 @@ export default function AnalyticsPage() {
             </TableHeader>
             <TableBody>
               {revenueData.map((item, index) => (
-                <TableRow key={index} className="hover:bg-gray-50 transition-colors">
+                <TableRow key={index} className="hover:bg-zinc-900/30 transition-colors">
                   <TableCell>
-                    <span className="font-medium">{item.date}</span>
+                    <span className="font-medium text-gray-400">{item.date}</span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-green-600 font-semibold">
+                    <span className="text-gray-400">
                       ${item.revenue.toLocaleString()}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-blue-600 font-semibold">
+                    <span className="text-gray-400">
                       ${item.commission.toLocaleString()}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-transparent border border-zinc-700 text-gray-500">
                       5%
                     </span>
                   </TableCell>

@@ -102,10 +102,10 @@ export default function PoolsPage() {
     <div className="container mx-auto px-4 py-8">
       {/* 页面标题 */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold text-[#FFA500]">
           Financing Pools
         </h1>
-        <p className="text-gray-600 mt-2">Participate in financing pools and earn stable returns</p>
+        <p className="text-gray-500 mt-2">Participate in financing pools and earn stable returns</p>
       </div>
 
       {/* 融资池卡片网格 */}
@@ -113,97 +113,30 @@ export default function PoolsPage() {
         {pools.map((pool) => {
           const colors = getColorClasses(pool.color);
           const utilizationRate = ((pool.totalValue - pool.available) / pool.totalValue) * 100;
+          const isHighlighted = pool.id === 'POOL001';
           
           return (
             <Card 
               key={pool.id}
-              className={`backdrop-blur-md bg-white/80 shadow-xl hover:shadow-2xl transition-all border-2 ${colors.border}`}
+              className={`bg-[#141414] hover:border-zinc-700 transition-all ${isHighlighted ? 'border-2 border-[#FFA500]' : 'border border-zinc-800'}`}
             >
-              <CardHeader className={`border-b border-gray-200 bg-gradient-to-r ${colors.bg}`}>
-                <div className="flex items-center gap-3 w-full">
-                  <div className={`w-12 h-12 ${colors.iconBg} rounded-xl flex items-center justify-center`}>
-                    <span className="text-3xl">{pool.icon}</span>
+              <CardHeader className="border-b border-zinc-800">
+                <div className="text-center w-full py-4">
+                  <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                    <span className="text-3xl opacity-60">{pool.icon}</span>
                   </div>
-                  <div className="flex-1">
-                    <h2 className="text-lg font-bold text-gray-800">{pool.name}</h2>
-                  </div>
+                  <h2 className="text-lg font-semibold text-gray-300">{pool.name}</h2>
+                  <p className="text-sm text-gray-500 mt-1">Register and manage your commodity</p>
                 </div>
               </CardHeader>
               <CardBody className="p-6 space-y-5">
-                {/* 年化收益率 */}
-                <div className={`p-4 rounded-xl bg-gradient-to-br ${colors.bg}`}>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Annual Percentage Yield (APY)</p>
-                  <p className={`text-4xl font-bold ${colors.text}`}>{pool.apy}</p>
-                  <p className="text-xs text-gray-500 mt-1">Stable returns guaranteed</p>
-                </div>
-
-                {/* 总池资金 */}
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">Total Pool Value</p>
-                  <p className="text-2xl font-bold text-gray-800">
-                    ${pool.totalValue.toLocaleString()}
-                  </p>
-                </div>
-
-                {/* 资金使用率进度条 */}
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="text-sm font-medium text-gray-600">Utilization Rate</p>
-                    <p className={`text-sm font-bold ${colors.text}`}>{utilizationRate.toFixed(1)}%</p>
-                  </div>
-                  <Progress
-                    value={utilizationRate}
-                    color={colors.progress}
-                    className="mb-2"
-                    size="md"
-                  />
-                  <p className="text-xs text-gray-500">
-                    Available: <span className="font-semibold">${pool.available.toLocaleString()}</span>
-                  </p>
-                </div>
-
-                {/* 我的投资金额 */}
-                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                  <p className="text-sm font-medium text-gray-600 mb-1">My Investment</p>
-                  <p className="text-2xl font-bold text-gray-800">
-                    ${pool.myInvestment.toLocaleString()}
-                  </p>
-                  {pool.myInvestment > 0 && (
-                    <p className="text-xs text-green-600 mt-1">
-                      Earning ~${((pool.myInvestment * parseFloat(pool.apy)) / 100).toFixed(2)}/year
-                    </p>
-                  )}
-                </div>
-
-                {/* 存入金额输入框 */}
-                <Input
-                  label="Deposit Amount (USDT)"
-                  type="number"
-                  placeholder="Enter amount"
-                  value={depositAmount}
-                  onChange={(e) => setDepositAmount(e.target.value)}
-                  variant="bordered"
-                  size="lg"
-                  startContent={
-                    <div className="pointer-events-none flex items-center">
-                      <span className="text-default-400 text-small">$</span>
-                    </div>
-                  }
-                />
-
                 {/* 存入按钮 */}
                 <Button
-                  color="primary"
                   size="lg"
-                  className={`w-full bg-gradient-to-r ${
-                    pool.color === 'green' ? 'from-green-500 to-emerald-500' :
-                    pool.color === 'blue' ? 'from-blue-500 to-cyan-500' :
-                    'from-purple-500 to-pink-500'
-                  } text-white font-semibold shadow-lg hover:shadow-xl transition-all`}
+                  className="w-full bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
                   onPress={() => handleDeposit(pool.id)}
                 >
-                  <span className="text-xl mr-2">💰</span>
-                  Deposit Funds
+                  Get Started
                 </Button>
               </CardBody>
             </Card>

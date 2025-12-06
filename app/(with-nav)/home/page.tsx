@@ -3,50 +3,51 @@
 import { Card, CardBody } from '@heroui/card';
 import { Button } from '@heroui/button';
 import { Link } from '@heroui/link';
-import { title, subtitle } from '@/components/primitives';
 
 /**
- * 首页组件
+ * 首页组件 - 深色极客风格
  * 展示 PicWe CCN 平台的主要功能模块入口
  */
 export default function HomePage() {
   return (
-    <section className="flex flex-col items-center justify-center gap-10 py-12 md:py-16">
-      {/* 标题区域 - 增强视觉效果 */}
-      <div className="inline-block max-w-4xl text-center justify-center backdrop-blur-sm bg-white/30 p-8 rounded-3xl shadow-2xl border border-white/50">
-        <div className="mb-4">
-          <span className="text-5xl md:text-6xl font-bold text-gray-800">PicWe&nbsp;</span>
-          <span className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+    <section className="flex flex-col items-center justify-center gap-16 py-16 md:py-20 min-h-screen">
+      {/* 标题区域 - 深色极客风格 */}
+      <div className="text-center max-w-4xl px-4">
+        <h1 className="text-5xl md:text-7xl font-bold mb-6">
+          <span className="text-white">Cargo X </span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600">
             Commodity Credit Network
           </span>
-        </div>
-        <h2 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-4">
+        </h1>
+        <p className="text-xl md:text-2xl text-gray-400 mb-4 font-light">
           Global Commodity Financing & Settlement Platform
-        </h2>
-        <p className="text-lg text-gray-600 leading-relaxed">
+        </p>
+        <p className="text-base md:text-lg text-gray-500 leading-relaxed max-w-3xl mx-auto">
           Transform traditional commodity trade into on-chain financeable credit assets through blockchain technology
         </p>
       </div>
 
-      {/* 主要功能卡片 - 第一行 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
+      {/* 主要功能卡片 - 3列布局 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl px-4">
         {/* 商品管理卡片 */}
-        <Card className="bg-white/90 backdrop-blur-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border-2 border-white/50">
-          <CardBody className="text-center p-8">
-            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-5xl">📦</span>
+        <Card className="bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 hover:border-zinc-700 transition-all group">
+          <CardBody className="p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
             </div>
-            <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+            <h3 className="text-xl font-semibold text-gray-200 mb-3">
               Product Management
             </h3>
-            <p className="text-gray-600 mb-6 leading-relaxed">
+            <p className="text-gray-500 text-sm mb-6 leading-relaxed">
               Register and manage your commodity assets with unique on-chain asset IDs
             </p>
             <Button 
               as={Link} 
-              href="/products" 
+              href="/products"
+              className="w-full bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
               size="lg"
-              className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold shadow-lg hover:shadow-xl"
             >
               Get Started
             </Button>
@@ -54,138 +55,155 @@ export default function HomePage() {
         </Card>
 
         {/* 融资申请卡片 */}
-        <Card className="bg-white/90 backdrop-blur-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border-2 border-white/50">
-          <CardBody className="text-center p-8">
-            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-5xl">💰</span>
+        <Card className="bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 hover:border-zinc-700 transition-all group">
+          <CardBody className="p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
-            <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+            <h3 className="text-xl font-semibold text-gray-200 mb-3">
               Financing Application
             </h3>
-            <p className="text-gray-600 mb-6 leading-relaxed">
+            <p className="text-gray-500 text-sm mb-6 leading-relaxed">
               Quick financing based on commodity assets with multiple pool options
             </p>
             <Button 
               as={Link} 
-              href="/financing" 
+              href="/financing"
+              className="w-full bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
               size="lg"
-              className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold shadow-lg hover:shadow-xl"
             >
-              Apply Now
+              Get Started
             </Button>
           </CardBody>
         </Card>
 
         {/* 融资池卡片 */}
-        <Card className="bg-white/90 backdrop-blur-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border-2 border-white/50">
-          <CardBody className="text-center p-8">
-            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-5xl">🏊</span>
+        <Card className="bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 hover:border-zinc-700 transition-all group">
+          <CardBody className="p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
             </div>
-            <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+            <h3 className="text-xl font-semibold text-gray-200 mb-3">
               Financing Pools
             </h3>
-            <p className="text-gray-600 mb-6 leading-relaxed">
+            <p className="text-gray-500 text-sm mb-6 leading-relaxed">
               Participate in financing pools and earn stable on-chain returns
             </p>
             <Button 
               as={Link} 
-              href="/pools" 
+              href="/pools"
+              className="w-full bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
               size="lg"
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold shadow-lg hover:shadow-xl"
             >
-              View Pools
+              Get Started
             </Button>
           </CardBody>
         </Card>
       </div>
 
-      {/* 主要功能卡片 - 第二行 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-6xl">
+      {/* 第二行 - 2列布局 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-6xl px-4">
         {/* 结算中心卡片 */}
-        <Card className="bg-white/90 backdrop-blur-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border-2 border-white/50">
-          <CardBody className="text-center p-8">
-            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-5xl">💳</span>
+        <Card className="bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 hover:border-zinc-700 transition-all group">
+          <CardBody className="p-10 text-center">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
             </div>
-            <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h3 className="text-xl font-semibold text-gray-200 mb-3">
               Settlement Center
             </h3>
-            <p className="text-gray-600 mb-6 leading-relaxed">
-              Real-time payment status and settlement operations
+            <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+              Register and manage your commodity assets with unique on-chain asset IDs
             </p>
             <Button 
               as={Link} 
-              href="/settlement" 
+              href="/settlement"
+              className="w-full bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
               size="lg"
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-lg hover:shadow-xl"
             >
-              Enter Settlement
+              Get Started
             </Button>
           </CardBody>
         </Card>
 
         {/* 数据分析卡片 */}
-        <Card className="bg-white/90 backdrop-blur-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 border-2 border-white/50">
-          <CardBody className="text-center p-8">
-            <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-5xl">📊</span>
+        <Card className="bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 hover:border-zinc-700 transition-all group">
+          <CardBody className="p-10 text-center">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-lg bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
             </div>
-            <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+            <h3 className="text-xl font-semibold text-gray-200 mb-3">
               Data Analytics
             </h3>
-            <p className="text-gray-600 mb-6 leading-relaxed">
-              View revenue data and commission records in real-time
+            <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+              Register and manage your commodity assets with unique on-chain asset IDs
             </p>
             <Button 
               as={Link} 
-              href="/analytics" 
+              href="/analytics"
+              className="w-full bg-zinc-800 hover:bg-zinc-700 text-gray-300 border border-zinc-700"
               size="lg"
-              className="w-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-semibold shadow-lg hover:shadow-xl"
             >
-              View Data
+              Get Started
             </Button>
           </CardBody>
         </Card>
       </div>
 
-      {/* 核心优势展示区域 */}
-      <div className="mt-12 w-full max-w-6xl">
-        <div className="backdrop-blur-lg bg-white/80 p-10 rounded-3xl shadow-2xl border-2 border-white/50">
-          <h3 className="text-4xl font-bold mb-10 text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+      {/* 核心优势区域 - 深色风格 */}
+      <div className="w-full max-w-6xl px-4 mt-8">
+        <div className="bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-2xl p-12">
+          <h3 className="text-3xl font-bold text-center mb-12 text-gray-200">
             Core Advantages
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* 快速融资 */}
-            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 hover:shadow-lg transition-all">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-3xl">🚀</span>
+            <div className="text-center p-6 rounded-xl border border-zinc-800 hover:border-yellow-600/50 transition-all group">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-zinc-700 group-hover:border-yellow-600 flex items-center justify-center transition-colors">
+                <svg className="w-8 h-8 text-gray-400 group-hover:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
               </div>
-              <p className="font-bold text-xl mb-2 text-gray-800">Fast Financing</p>
-              <p className="text-gray-600 leading-relaxed">
-                Quick funding based on commodity assets
+              <h4 className="font-semibold text-lg mb-2 text-gray-300">Fast Financing</h4>
+              <p className="text-gray-500 text-sm">
+                Register and manage your commodity
               </p>
             </div>
 
-            {/* 安全透明 */}
-            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 hover:shadow-lg transition-all">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-3xl">🔒</span>
+            {/* 安全透明 - 高亮 */}
+            <div className="text-center p-6 rounded-xl border-2 border-yellow-600 bg-yellow-600/5 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/10 to-transparent"></div>
+              <div className="relative">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-yellow-600 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <h4 className="font-semibold text-lg mb-2 text-yellow-500">Secure & Transparent</h4>
+                <p className="text-gray-400 text-sm">
+                  Register and manage your commodity
+                </p>
               </div>
-              <p className="font-bold text-xl mb-2 text-gray-800">Secure & Transparent</p>
-              <p className="text-gray-600 leading-relaxed">
-                Blockchain technology ensures fund security
-              </p>
             </div>
 
             {/* 稳定收益 */}
-            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 hover:shadow-lg transition-all">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-3xl">💎</span>
+            <div className="text-center p-6 rounded-xl border border-zinc-800 hover:border-yellow-600/50 transition-all group">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full border-2 border-zinc-700 group-hover:border-yellow-600 flex items-center justify-center transition-colors">
+                <svg className="w-8 h-8 text-gray-400 group-hover:text-yellow-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
               </div>
-              <p className="font-bold text-xl mb-2 text-gray-800">Stable Returns</p>
-              <p className="text-gray-600 leading-relaxed">
-                LPs earn stable investment returns
+              <h4 className="font-semibold text-lg mb-2 text-gray-300">Stable Returns</h4>
+              <p className="text-gray-500 text-sm">
+                Register and manage your commodity
               </p>
             </div>
           </div>

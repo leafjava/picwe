@@ -31,18 +31,18 @@ export const Navbar = () => {
     <Input
       aria-label="Search"
       classNames={{
-        inputWrapper: "bg-white/80 backdrop-blur-md border border-gray-200",
-        input: "text-sm",
+        inputWrapper: "bg-zinc-900 border border-zinc-800",
+        input: "text-sm text-gray-300",
       }}
       endContent={
-        <Kbd className="hidden lg:inline-block bg-gray-100" keys={["command"]}>
+        <Kbd className="hidden lg:inline-block bg-zinc-800 text-gray-400" keys={["command"]}>
           K
         </Kbd>
       }
       labelPlacement="outside"
       placeholder="Search..."
       startContent={
-        <SearchIcon className="text-base text-gray-400 pointer-events-none flex-shrink-0" />
+        <SearchIcon className="text-base text-gray-600 pointer-events-none flex-shrink-0" />
       }
       type="search"
       variant="bordered"
@@ -53,7 +53,7 @@ export const Navbar = () => {
     <HeroUINavbar 
       maxWidth="xl" 
       position="sticky"
-      className="backdrop-blur-md bg-white/70 border-b border-gray-200/50"
+      className="backdrop-blur-md bg-black/80 border-b border-zinc-800"
       classNames={{
         wrapper: "px-4 sm:px-6",
       }}
@@ -61,14 +61,14 @@ export const Navbar = () => {
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
         <NavbarBrand as="li" className="gap-3 max-w-fit">
           <NextLink className="flex justify-start items-center gap-2 hover:opacity-80 transition-opacity" href="/home">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
               <Logo className="text-white" />
             </div>
             <div className="flex flex-col">
-              <p className="font-bold text-lg bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                PicWe CCN
+              <p className="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
+                Cargo X CCN
               </p>
-              <p className="text-xs text-gray-500 hidden sm:block">Commodity Credit Network</p>
+              <p className="text-xs text-gray-600 hidden sm:block">Commodity Credit Network</p>
             </div>
           </NextLink>
         </NavbarBrand>
@@ -77,8 +77,8 @@ export const Navbar = () => {
             <NavbarItem key={item.href}>
               <NextLink
                 className={clsx(
-                  "px-4 py-2 rounded-lg font-medium transition-all hover:bg-gray-100",
-                  "data-[active=true]:bg-gradient-to-r data-[active=true]:from-blue-500 data-[active=true]:to-purple-500",
+                  "px-4 py-2 rounded-lg font-medium transition-all text-gray-400 hover:text-gray-200 hover:bg-zinc-800",
+                  "data-[active=true]:bg-gradient-to-r data-[active=true]:from-yellow-600 data-[active=true]:to-orange-600",
                   "data-[active=true]:text-white data-[active=true]:shadow-md",
                 )}
                 href={item.href}
@@ -99,25 +99,25 @@ export const Navbar = () => {
             isExternal 
             aria-label="Twitter" 
             href={siteConfig.links.twitter}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
           >
-            <TwitterIcon className="text-gray-600 hover:text-blue-500 transition-colors" />
+            <TwitterIcon className="text-gray-600 hover:text-blue-400 transition-colors" />
           </Link>
           <Link 
             isExternal 
             aria-label="Discord" 
             href={siteConfig.links.discord}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
           >
-            <DiscordIcon className="text-gray-600 hover:text-purple-500 transition-colors" />
+            <DiscordIcon className="text-gray-600 hover:text-purple-400 transition-colors" />
           </Link>
           <Link 
             isExternal 
             aria-label="Github" 
             href={siteConfig.links.github}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
           >
-            <GithubIcon className="text-gray-600 hover:text-gray-900 transition-colors" />
+            <GithubIcon className="text-gray-600 hover:text-gray-300 transition-colors" />
           </Link>
           <div className="p-2">
             <ThemeSwitch />
