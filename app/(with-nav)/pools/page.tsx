@@ -318,7 +318,7 @@ export default function PoolsPage() {
       </div>
 
       {/* 主内容 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-3 md:gap-x-4 gap-y-2 md:gap-y-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-3 md:gap-x-4 gap-y-0.5 md:gap-y-1">
         {/* 左侧：池子卡片 */}
         <Card className="bg-[#141414]/90 border border-zinc-800 lg:col-span-2">
           <CardHeader className="border-b border-zinc-800 flex justify-between items-center">
@@ -328,7 +328,7 @@ export default function PoolsPage() {
             </div>
             {loadingAssets && <Spinner size="sm" color="warning" />}
           </CardHeader>
-          <CardBody className="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-3 md:gap-x-4 gap-y-2 md:gap-y-3">
+          <CardBody className="p-6 grid grid-cols-1 md:grid-cols-3 gap-x-3 md:gap-x-4 gap-y-0.5 md:gap-y-1">
             {loadError && (
               <div className="md:col-span-3 text-sm text-red-400">Loading failed: {loadError}</div>
             )}
@@ -339,7 +339,7 @@ export default function PoolsPage() {
                   selectedAssetId === asset.id.toString()
                     ? 'border-amber-400/80'
                     : 'border-zinc-800'
-                } bg-gradient-to-br from-[#111827] to-[#0b0f1a] p-3 shadow-md transition-all hover:-translate-y-1 hover:border-amber-300/60 aspect-[3/4] flex flex-col justify-between cursor-pointer`}
+                } bg-gradient-to-br from-[#111827] to-[#0b0f1a] p-3 shadow-md transition-all hover:-translate-y-1 hover:border-amber-300/60 aspect-[1/2] flex flex-col justify-between cursor-pointer`}
                 onClick={() => setSelectedAssetId(asset.id.toString())}
               >
                 <div>
