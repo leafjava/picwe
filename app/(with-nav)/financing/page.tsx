@@ -46,10 +46,10 @@ const toBigIntInput = (val?: string) => {
 
 const statusLabel = (status: number) => {
   const map: Record<number, string> = {
-    0: 'Pending',
-    1: 'Active',
-    2: 'Cleared',
-    3: 'Defaulted',
+    0: 'Registered',
+    1: 'InTransit',
+    2: 'Collateralized',
+    3: 'Cleared',
   };
   return map[status] ?? `#${status}`;
 };
@@ -74,7 +74,8 @@ export default function FinancingPage() {
   const [interestRateBps, setInterestRateBps] = useState('800');
   const [tenorDays, setTenorDays] = useState('30');
   const [drawdownDealId, setDrawdownDealId] = useState('');
-  const [drawdownAmount, setDrawdownAmount] = useState('0');
+  const [drawdownAmount, setDrawdownAmount] = useState('');
+  const [viewDealId, setViewDealId] = useState('');
 
   useEffect(() => {
     if (address) {
@@ -85,6 +86,8 @@ export default function FinancingPage() {
 
   const parsedAssetId = useMemo(() => toBigIntInput(selectedAssetId), [selectedAssetId]);
   const parsedDealId = useMemo(() => toBigIntInput(drawdownDealId), [drawdownDealId]);
+  const parsedDrawdownAmount = useMemo(() => toBigIntInput(drawdownAmount), [drawdownAmount]);
+  const parsedViewDealId = useMemo(() => toBigIntInput(viewDealId), [viewDealId]);
 
   const { data: nextAssetId } = useReadContract({
     address: REGISTRY_ADDRESS,
@@ -92,7 +95,7 @@ export default function FinancingPage() {
     functionName: 'nextAssetId',
   });
 
-  const { data: nextDealId } = useReadContract({
+  const { data: nextDealId, refetch: refetchNextDealId } = useReadContract({
     address: RECEIVABLE_POOL_ADDRESS,
     abi: ReceivablePoolAbi,
     functionName: 'nextDealId',
@@ -122,6 +125,21 @@ export default function FinancingPage() {
     query: { enabled: Boolean(parsedAssetId) },
   });
 
+  const { data: dealDetails } = useReadContract({
+    address: RECEIVABLE_POOL_ADDRESS,
+    abi: ReceivablePoolAbi,
+    functionName: 'deals',
+    args: parsedViewDealId ? [parsedViewDealId] : undefined,
+    query: { enabled: Boolean(parsedViewDealId) },
+  });
+
+  const { data: payoffView } = useReadContract({
+    address: RECEIVABLE_POOL_ADDRESS,
+    abi: ReceivablePoolAbi,
+    functionName: 'payoffAmount',
+    args: parsedViewDealId ? [parsedViewDealId] : undefined,
+    query: { enabled: Boolean(parsedViewDealId) },
+  });
   const {
     data: txHash,
     writeContract,
@@ -185,6 +203,13 @@ export default function FinancingPage() {
     fetchAssets();
   }, [publicClient, nextAssetId, selectedAssetId]);
 
+  // 创建成功后刷新 nextDealId，方便用户手动输入最新 dealId
+  useEffect(() => {
+    if (success) {
+      refetchNextDealId();
+    }
+  }, [success, refetchNextDealId]);
+
   const handleCreateDeal = () => {
     if (!parsedAssetId || !borrower || !payer) {
       alert('Please select asset and fill in borrower / payer');
@@ -199,15 +224,15 @@ export default function FinancingPage() {
   };
 
   const handleDrawdown = () => {
-    if (!parsedDealId || !drawdownAmount) {
-      alert('Please fill in dealId and withdrawal amount');
+    if (!parsedDealId || !parsedDrawdownAmount || parsedDrawdownAmount <= 0n) {
+      alert('Please fill in dealId and a drawdown amount > 0');
       return;
     }
     writeContract({
       address: RECEIVABLE_POOL_ADDRESS,
       abi: ReceivablePoolAbi,
       functionName: 'drawdown',
-      args: [parsedDealId, BigInt(drawdownAmount)],
+      args: [parsedDealId, parsedDrawdownAmount],
     });
   };
 
@@ -271,15 +296,16 @@ export default function FinancingPage() {
           </Chip>
         </div>
         <div className="mb-8 rounded-xl border border-amber-300/40 bg-amber-500/10 text-amber-50 p-4 text-sm">
-          <p className="font-semibold mb-1">Correct Process Guide:</p>
+          <p className="font-semibold mb-1">Financing flow (matches contract):</p>
           <ol className="list-decimal list-inside space-y-1 text-amber-100">
-            <li>Confirm asset status: Set Registry asset to financeable status (usually Active/InTransit), can be modified using Pool.updateAssetStatus (on Products page or script).</li>
-            <li>Creating financing deal must be signed with <span className="font-semibold">Pool owner wallet</span>, otherwise wallet will reject/contract will fail.</li>
-            <li>Select a registered asset → fill in borrower / payer → click “Create Financing Transaction” and note the returned dealId (usually nextDealId - 1).</li>
-            <li>LP first approve + deposit MockUSDT to Pool, deposit to corresponding assetId.</li>
-            <li>After liquidity is available, borrower fills in dealId and amount, execute drawdown; repay for repayment.</li>
+            <li>Register asset → get assetId (status = Registered/0).</li>
+            <li>Set asset status to InTransit (1) via Pool.updateAssetStatus.</li>
+            <li>Create deal: Pool.createFinancingDeal(assetId, borrower, payer, rateBps, tenorDays) → dealId. Preconditions: status must be InTransit; borrower/payer ≠ 0.</li>
+            <li>LP: approve MockUSDT to Pool, then Pool.deposit(assetId, amount) to add liquidity.</li>
+            <li>Borrower drawdown: Pool.drawdown(dealId, amount) (caller = borrower) when liquidity is sufficient.</li>
+            <li>Payer repay: Pool.repay(dealId) (caller = payer) with USDT allowance; repay amount = payoffAmount(dealId).</li>
+            <li>Clear asset if needed: Pool.updateAssetStatus(assetId, Cleared/3); LP can Pool.withdraw(assetId).</li>
           </ol>
-          <p className="mt-2 text-amber-200">If "User rejected request" pops up during signing, please switch to Pool owner account or check wallet permissions.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -394,6 +420,7 @@ export default function FinancingPage() {
                     label: 'text-white',
                     input: 'text-white placeholder:text-gray-500',
                   }}
+                  placeholder="Enter amount > 0"
                 />
               </div>
 
@@ -423,6 +450,7 @@ export default function FinancingPage() {
                     label: 'text-white',
                     input: 'text-white placeholder:text-gray-500',
                   }}
+                  placeholder={nextDealId !== undefined ? `Latest deal ~ ${Number(nextDealId) - 1}` : 'Enter dealId'}
                 />
                 <div className="flex gap-2">
                   <Button
@@ -464,6 +492,44 @@ export default function FinancingPage() {
 
           {/* 右侧：池子数据 & 资产列表 */}
           <div className="space-y-4">
+            <Card className="bg-[#0f172a]/80 border border-white/10 backdrop-blur-lg">
+              <CardHeader className="border-b border-white/5">
+                <div>
+                  <p className="text-sm text-amber-300">Deal Inspector</p>
+                  <h3 className="text-lg font-semibold text-white">View deal details</h3>
+                </div>
+              </CardHeader>
+              <CardBody className="space-y-3 text-sm text-gray-300">
+                <Input
+                  label="dealId"
+                  value={viewDealId}
+                  onChange={(e) => setViewDealId(e.target.value)}
+                  classNames={{
+                    inputWrapper:
+                      'bg-black border border-white/20 hover:border-amber-300/50 focus-within:border-amber-400/80 text-white',
+                    label: 'text-white',
+                    input: 'text-white placeholder:text-gray-500',
+                  }}
+                  placeholder={nextDealId !== undefined ? `0 ~ ${Number(nextDealId) - 1}` : ''}
+                />
+                {dealDetails ? (
+                  <div className="rounded-lg border border-white/10 bg-black/40 p-3 space-y-1">
+                    <p>assetId: {String((dealDetails as any).assetId)}</p>
+                    <p>borrower: {(dealDetails as any).borrower}</p>
+                    <p>payer: {(dealDetails as any).payer}</p>
+                    <p>principal (drawn): {String((dealDetails as any).drawnAmount)}</p>
+                    <p>interestRateBps: {String((dealDetails as any).interestRateBps)}</p>
+                    <p>tenorDays: {String((dealDetails as any).tenorDays)}</p>
+                    <p>interestAmount: {String((dealDetails as any).interestAmount)}</p>
+                    <p>repaid: {String((dealDetails as any).repaid)}</p>
+                    <p>payoffAmount: {payoffView !== undefined ? String(payoffView) : '-'}</p>
+                  </div>
+                ) : (
+                  <p className="text-gray-500">Enter a valid dealId to view details.</p>
+                )}
+              </CardBody>
+            </Card>
+
             <Card className="bg-[#0f172a]/80 border border-white/10 backdrop-blur-lg">
               <CardHeader className="border-b border-white/5">
                 <div>

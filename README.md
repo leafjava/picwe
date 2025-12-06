@@ -1,53 +1,74 @@
-# Next.js & HeroUI Template
+# PicWe Commodity Credit Network (BSC Testnet)
 
-This is a template for creating applications using Next.js 14 (app directory) and HeroUI (v2).
+End-to-end commodity financing demo with registry, receivable pool, and mock stablecoin. Frontend + three smart contracts illustrating warehouse financing lifecycle: asset registration, LP deposits, borrower drawdown, payer repayment, asset clearing, and LP withdrawal.
 
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/heroui/next-app-template)
+## Repos
 
-## Technologies Used
+- Frontend: https://github.com/leafjava/picwe  
+- Contracts: https://github.com/wblu214/cargox_contract
 
-- [Next.js 14](https://nextjs.org/docs/getting-started)
-- [HeroUI v2](https://heroui.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Tailwind Variants](https://tailwind-variants.org)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [next-themes](https://github.com/pacocoursey/next-themes)
+## Addresses (BSC Testnet, chainId 97)
 
-## How to Use
+- MockUSDT: `0xE707FEE53BfDd6C69Fc8D05caF148a6C28Edf49b`
+- CommodityAssetRegistry: `0x8dB7E0ed381a43de2b7c46585529e9bA0063eAA1`
+- ReceivablePool: `0x9F213109d2E9ADEA09e247AFC56bB2A03214C4E7`
+  - BscScan: [MockUSDT](https://testnet.bscscan.com/address/0xE707FEE53BfDd6C69Fc8D05caF148a6C28Edf49b) · [Registry](https://testnet.bscscan.com/address/0x8dB7E0ed381a43de2b7c46585529e9bA0063eAA1) · [ReceivablePool](https://testnet.bscscan.com/address/0x9F213109d2E9ADEA09e247AFC56bB2A03214C4E7)
 
-### Use the template with create-next-app
+## Core Flow (matches contract enums)
 
-To create a new project based on this template using `create-next-app`, run the following command:
+1) **Register Asset**  
+   `Pool.registerAsset(issuer, name, metadataURI, quantity, unit, referenceValue, status=Registered/0)` → `assetId`.
+2) **Set InTransit**  
+   `Pool.updateAssetStatus(assetId, InTransit=1)`.
+3) **Create Financing Deal**  
+   `Pool.createFinancingDeal(assetId, borrower, payer, interestRateBps, tenorDays)` → `dealId` (asset must be InTransit; borrower/payer ≠ 0).
+4) **LP Deposit**  
+   MockUSDT `approve(Pool, amount)` → `Pool.deposit(assetId, amount)`.
+5) **Borrower Drawdown**  
+   `Pool.drawdown(dealId, amount)` (caller = borrower) when liquidity is sufficient.
+6) **Payer Repay**  
+   MockUSDT `approve(Pool, payoffAmount(dealId))` → `Pool.repay(dealId)` (caller = payer).
+7) **Clear Asset**  
+   `Pool.updateAssetStatus(assetId, Cleared/3)`.
+8) **LP Withdraw**  
+   `Pool.withdraw(assetId)`.
 
-```bash
-npx create-next-app -e https://github.com/heroui-inc/next-app-template
-```
+AssetStatus enum: `0 Registered`, `1 InTransit`, `2 Collateralized`, `3 Cleared`.
 
-### Install dependencies
+## Frontend Pages (./app/(with-nav))
 
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
+- **Products**: Registry asset list, register via Pool, status update, live on-chain table.
+- **Financing**: Select asset → create deal → drawdown/repay (with deal inspector showing `deals(dealId)` + `payoffAmount`), demo-friendly hints.
+- **Pools**: LP mint/approve MockUSDT, deposit/withdraw, status update, liquidity stats; all calls use real contracts.
 
-```bash
-npm install
-```
+## Getting Started
 
-### Run the development server
+1) Install deps: `npm install`  
+2) Run dev: `npm run dev`  
+3) Ensure env has WalletConnect project ID if needed: `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=...`  
+Wagmi is preconfigured for BSC testnet; addresses come from `lib/contracts.ts`.
 
-```bash
-npm run dev
-```
+## Contracts Overview
 
-### Setup pnpm (optional)
+- **MockUSDT**: 6-decimals ERC20 with mint/approve/transfer.
+- **CommodityAssetRegistry**: Asset storage with issuer/referenceValue/status.
+- **ReceivablePool**: Owns Registry; manages deals, LP liquidity, drawdown/repay, status updates, and views (`availableLiquidity`, `poolTotalDeposits`, `reservedInterest`, `payoffAmount`).
 
-If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
+## Demo Tips
 
-```bash
-public-hoist-pattern[]=*@heroui/*
-```
+- Use the latest addresses above; set assets to InTransit before creating deals.
+- LP must approve+deposit before borrower drawdown.
+- Payer must approve payoffAmount before repay.
+- Deal inspector (Financing page) helps verify dealId/borrower/payer/drawnAmount/payoffAmount.
 
-After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
+## Screenshots (app/test)
 
-## License
-
-Licensed under the [MIT license](https://github.com/heroui-inc/next-app-template/blob/main/LICENSE).
+<p align="center">
+  <img src="app/test/image.png" width="320" />
+  <img src="app/test/image (1).png" width="320" />
+  <img src="app/test/image (2).png" width="320" />
+</p>
+<p align="center">
+  <img src="app/test/image (3).png" width="320" />
+  <img src="app/test/image (4).png" width="320" />
+</p>

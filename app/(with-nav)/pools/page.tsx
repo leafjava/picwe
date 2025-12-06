@@ -25,10 +25,10 @@ type Asset = {
 
 const statusLabel = (s: number) => {
   const map: Record<number, string> = {
-    0: 'Pending',
-    1: 'Active',
-    2: 'Cleared',
-    3: 'Defaulted',
+    0: 'Registered',
+    1: 'InTransit',
+    2: 'Collateralized',
+    3: 'Cleared',
   };
   return map[s] ?? `#${s}`;
 };
@@ -545,16 +545,16 @@ export default function PoolsPage() {
                 }}
               >
                 <SelectItem key="0" value="0">
-                  0 - Pending
+                  0 - Registered
                 </SelectItem>
                 <SelectItem key="1" value="1">
-                  1 - Active
+                  1 - InTransit
                 </SelectItem>
                 <SelectItem key="2" value="2">
-                  2 - Cleared
+                  2 - Collateralized
                 </SelectItem>
                 <SelectItem key="3" value="3">
-                  3 - Defaulted
+                  3 - Cleared
                 </SelectItem>
               </Select>
               <Button

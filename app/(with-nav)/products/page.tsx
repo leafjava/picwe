@@ -47,19 +47,19 @@ const toBigIntInput = (val: string) => {
 
 const statusLabel = (status: number) => {
   const map: Record<number, string> = {
-    0: 'Pending',
-    1: 'Active',
-    2: 'Cleared',
-    3: 'Defaulted',
+    0: 'Registered',
+    1: 'InTransit',
+    2: 'Collateralized',
+    3: 'Cleared',
   };
   return map[status] ?? `#${status}`;
 };
 
 const statusOptions = [
-  { value: '0', label: 'Pending' },
-  { value: '1', label: 'Active' },
-  { value: '2', label: 'Cleared' },
-  { value: '3', label: 'Defaulted' },
+  { value: '0', label: 'Registered' },
+  { value: '1', label: 'InTransit' },
+  { value: '2', label: 'Collateralized' },
+  { value: '3', label: 'Cleared' },
 ];
 
 const formatPrice = (value: bigint) => {
