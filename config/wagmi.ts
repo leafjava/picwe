@@ -16,7 +16,7 @@ const getConnectors = () => {
   const base = [
     injected({
       shimDisconnect: true,
-      target: 'metaMask',
+      target: ['metaMask','okxwallet'],
     }),
   ];
 

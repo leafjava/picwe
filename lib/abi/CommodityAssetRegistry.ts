@@ -1,9 +1,4 @@
-// CommodityAssetRegistry.sol
-export const REGISTRY_ADDRESS =
-    "0xc15e1ef0b9c3972231639127Afc6F72ea4c5b05D" as const; // 你部署的 CommodityAssetRegistry 地址
-
-
-export const registryAbi = [
+export const CommodityAssetRegistryAbi = [
     {
         "type": "constructor",
         "inputs": [],
